@@ -1,0 +1,18 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="OptixCore.Library.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="OptixLib" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">optix.6.5.0.dll</Value>
+    </Setting>
+    <Setting Name="OptixULib" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">optixu.6.5.0.dll</Value>
+    </Setting>
+    <Setting Name="OptixPrimeLib" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">optix_prime.6.5.0.dll</Value>
+    </Setting>
+    <Setting Name="CUdraw_color" Type="System.String" Scope="Application">
+      <Value Profile="(Default)" />
+    </Setting>
+  </Settings>
+</SettingsFile>

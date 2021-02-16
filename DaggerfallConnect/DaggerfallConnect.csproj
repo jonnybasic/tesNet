@@ -1,0 +1,131 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{9806DDFD-BDCA-45DA-86DC-0EA77C95833C}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>DaggerfallConnect</RootNamespace>
+    <AssemblyName>DaggerfallConnect</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="API\Arch3dFile.cs" />
+    <Compile Include="API\Arch3dPatch.cs" />
+    <Compile Include="API\BaseImageFile.cs" />
+    <Compile Include="API\BioFile.cs" />
+    <Compile Include="API\BlocksFile.cs" />
+    <Compile Include="API\BookFile.cs" />
+    <Compile Include="API\BsaFile.cs" />
+    <Compile Include="API\BssFile.cs" />
+    <Compile Include="API\CfaFile.cs" />
+    <Compile Include="API\CifRciFile.cs" />
+    <Compile Include="API\ClassFile.cs" />
+    <Compile Include="API\DFBitmap.cs" />
+    <Compile Include="API\DFBlock.cs" />
+    <Compile Include="API\DFCareer.cs" />
+    <Compile Include="API\DFColor.cs" />
+    <Compile Include="API\DFLocation.cs" />
+    <Compile Include="API\DFMesh.cs" />
+    <Compile Include="API\DFPalette.cs" />
+    <Compile Include="API\DFPosition.cs" />
+    <Compile Include="API\DFRandom.cs" />
+    <Compile Include="API\DFRegion.cs" />
+    <Compile Include="API\DFSize.cs" />
+    <Compile Include="API\DFSound.cs" />
+    <Compile Include="API\DFValidator.cs" />
+    <Compile Include="API\FaceUVTool.cs" />
+    <Compile Include="API\FactionFile.cs" />
+    <Compile Include="API\FileProxy.cs" />
+    <Compile Include="API\FlatsFile.cs" />
+    <Compile Include="API\FlcFile.cs" />
+    <Compile Include="API\FntFile.cs" />
+    <Compile Include="API\GfxFile.cs" />
+    <Compile Include="API\ImgFile.cs" />
+    <Compile Include="API\ItemsFile.cs" />
+    <Compile Include="API\MagicItemsFile.cs" />
+    <Compile Include="API\MapsFile.cs" />
+    <Compile Include="API\MonsterFile.cs" />
+    <Compile Include="API\PaintFile.cs" />
+    <Compile Include="API\PakFile.cs" />
+    <Compile Include="API\PatchList.cs" />
+    <Compile Include="API\PowerOfTwo.cs" />
+    <Compile Include="API\RumorFile.cs" />
+    <Compile Include="API\Save\ContainerRecord.cs" />
+    <Compile Include="API\Save\DiseaseOrPoisonRecord.cs" />
+    <Compile Include="API\Save\GuildMembershipRecord.cs" />
+    <Compile Include="API\Save\ItemRecord.cs" />
+    <Compile Include="API\Save\SaveImage.cs" />
+    <Compile Include="API\Save\SaveTree.cs" />
+    <Compile Include="API\Save\SaveTreeBaseRecord.cs" />
+    <Compile Include="API\Save\SaveTreeBuildingRecords.cs" />
+    <Compile Include="API\Save\SaveTreeHeader.cs" />
+    <Compile Include="API\Save\SpellRecord.cs" />
+    <Compile Include="API\Save\TrappedSoulRecord.cs" />
+    <Compile Include="API\SkyFile.cs" />
+    <Compile Include="API\SndFile.cs" />
+    <Compile Include="API\TextFile.cs" />
+    <Compile Include="API\TextureFile.cs" />
+    <Compile Include="API\Vector3.cs" />
+    <Compile Include="API\VidFile.cs" />
+    <Compile Include="API\WoodsFile.cs" />
+    <Compile Include="DaggerfallWorkshopProxy\DaggerfallUnity.cs" />
+    <Compile Include="DaggerfallWorkshopProxy\Game.cs" />
+    <Compile Include="FullSerializerProxy\FullSerializer.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UnityProxy\Engine.cs" />
+    <Compile Include="UnityProxy\Color.cs" />
+    <Compile Include="UnityProxy\Mathf.cs" />
+    <Compile Include="UnityProxy\Text.cs" />
+    <Compile Include="UnityProxy\Vector.cs" />
+    <Compile Include="Utility\AssetInjection\XMLManager.cs" />
+    <Compile Include="Utility\BuildingNames.cs" />
+    <Compile Include="Utility\ContentReader.cs" />
+    <Compile Include="Utility\DaggerfallDateTime.cs" />
+    <Compile Include="Utility\DaggerfallSpellReader.cs" />
+    <Compile Include="Utility\DefaultTextProvider.cs" />
+    <Compile Include="Utility\FastColorPalette.cs" />
+    <Compile Include="Utility\IMacroContextProvider.cs" />
+    <Compile Include="Utility\MacroDataSource.cs" />
+    <Compile Include="Utility\Table.cs" />
+    <Compile Include="Utility\TerrainAtlasBuilder.cs" />
+    <Compile Include="Utility\TextProvider.cs" />
+    <Compile Include="Utility\Tuple.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="LICENSE" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
