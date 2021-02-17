@@ -273,6 +273,7 @@ namespace DaggerfallWorkshopWpf
         public Point[] UVs;                         // Vector2 array containing UV data
         public Point[] Texcoords;                   // Vector2 array containing texcoords data
         public uint[] Indices;                      // Index array describing the triangles of this mesh
+        public uint[] Materials;                    // Index array describing the sub mesh materials
         public SubMeshData[] SubMeshes;             // Data for each SubMesh, grouped by texture
         public ModelDoor[] Doors;                   // Doors found in this model
         //public DFMesh.DFPlane[] DungeonFloors;      // Dungeon floor planes in this model

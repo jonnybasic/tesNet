@@ -760,9 +760,10 @@ namespace DaggerfallWorkshopWpf
 
             // Allocate index buffer
             model.Indices = new uint[model.DFMesh.TotalTriangles * 3];
+            model.Materials = new uint[model.DFMesh.TotalTriangles];
 
             // Iterate through all submeshes
-            short indexCount = 0;
+            short indexCount = 0, materialCount = 0;
             short subMeshCount = 0, vertexCount = 0;
             foreach (DFMesh.DFSubMesh dfSubMesh in model.DFMesh.SubMeshes)
             {
@@ -786,6 +787,9 @@ namespace DaggerfallWorkshopWpf
                         model.Indices[indexCount++] = (uint)sharedPoint;
                         model.Indices[indexCount++] = (uint)vertexCount + 1;
                         model.Indices[indexCount++] = (uint)vertexCount;
+
+                        // Store this material for this face
+                        model.Materials[materialCount++] = (uint)subMeshCount;
 
                         // Increment vertexCount to next point in fan
                         vertexCount++;

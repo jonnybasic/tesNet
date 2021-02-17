@@ -69,10 +69,10 @@
             <Setter Property="Background"
                     Value="{StaticResource DaggerfallBackground}" />
         </Style>
-        <Style TargetType="TabControl">
+        <!--<Style TargetType="TabControl">
             <Setter Property="Background"
                     Value="{StaticResource DaggerfallBackground}" />
-        </Style>
+        </Style>-->
         <Style TargetType="Menu">
             <Setter Property="Background"
                     Value="{StaticResource DaggerfallGray3}" />
@@ -170,6 +170,7 @@
             </ListBox>
 
             <TabControl Grid.Column="1"
+                        Background="{StaticResource DaggerfallBackground}"
                         DataContext="{Binding Path=CurrentItem, Source={StaticResource Arch3dRecordsView}}">
                 <TabControl.Resources>
                     <Style TargetType="TabItem">
@@ -324,13 +325,20 @@
                     </ListView>
                 </TabItem>
                 <TabItem Header="Model Viewer RT">
+                    <TabItem.Resources>
+                        <Color x:Key="BufferBright">#FFFFFFFF</Color>
+                        <Color x:Key="BufferBG">#FFC79649</Color>
+                    </TabItem.Resources>
                     <Grid>
+                        <Grid.Background>
+                            <SolidColorBrush Color="{StaticResource BufferBright}" />
+                        </Grid.Background>
                         <local:OptixBufferImage x:Name="OutputBuffer"
                                                 Grid.Column="0"
                                                 Grid.ColumnSpan="2"
                                                 Grid.Row="1"
                                                 Stretch="Fill"
-                                                BackgroundColor="#FFC79649"
+                                                BackgroundColor="{StaticResource BufferBright}"
                                                 ModelColor="#FFBABABA"
                                                 CheckerColorA="#FF2C1C0C"
                                                 CheckerColorB="#FF868686"

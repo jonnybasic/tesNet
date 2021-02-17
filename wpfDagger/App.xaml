@@ -4,7 +4,8 @@
              xmlns:local="clr-namespace:wpfDagger"
              xmlns:dwpf="clr-namespace:DaggerfallWorkshopWpf"
              StartupUri="MainWindow.xaml"
-             Startup="Application_Startup">
+             Startup="Application_Startup"
+             DispatcherUnhandledException="Application_DispatcherUnhandledException">
     <Application.Resources>
         <!-- Font Styles -->
         <FontFamily x:Key="OblivionFontFamily">./resources/#OblivionFont</FontFamily>

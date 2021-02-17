@@ -57,6 +57,19 @@ namespace OptixCore.Library
             set => CheckError(Api.rtGeometryTrianglesSetPrimitiveCount(InternalPtr, value));
         }
 
+        /// <summary>
+        /// Set the number of materials for the geometry
+        /// </summary>
+        public uint MaterialCount
+        {
+            get
+            {
+                CheckError(Api.rtGeometryTrianglesGetMaterialCount(InternalPtr, out var count));
+                return count;
+            }
+            set => CheckError(Api.rtGeometryTrianglesSetMaterialCount(InternalPtr, value));
+        }
+
 
 
         /// <summary>
@@ -90,6 +103,16 @@ namespace OptixCore.Library
         public void SetVertices(uint count, ref OptixBuffer buffer, uint byteOffset, uint byteStride, RTformat format)
         {
             CheckError(Api.rtGeometryTrianglesSetVertices(InternalPtr, count, buffer.InternalPtr, byteOffset, byteStride, format));
+        }
+
+        public void SetMaterialIndices(ref OptixBuffer buffer, RTformat format = RTformat.RT_FORMAT_UNSIGNED_INT)
+        {
+            SetMaterialIndices(ref buffer, 0, (uint)buffer.ElemSize, format);
+        }
+
+        public void SetMaterialIndices(ref OptixBuffer buffer, uint byteOffset, uint byteStride, RTformat format)
+        {
+            CheckError(Api.rtGeometryTrianglesSetMaterialIndices(InternalPtr, buffer.InternalPtr, byteOffset, byteStride, format));
         }
 
         public void SetBuildFlags(RTgeometrybuildflags flags)

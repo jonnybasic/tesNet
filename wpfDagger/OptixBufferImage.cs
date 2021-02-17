@@ -7,14 +7,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-//using System.Windows.Media;
 using System.Windows.Media.Imaging;
-//using System.Windows.Media.Media3D;
 using System.Windows.Threading;
 
 namespace wpfDagger
@@ -23,9 +19,6 @@ namespace wpfDagger
     using float2 = System.Numerics.Vector2;
     using float3 = System.Numerics.Vector3;
     using float4 = System.Numerics.Vector4;
-    //using Model3DGroup = System.Windows.Media.Media3D.Model3DGroup;
-    //using GeometryModel3D = System.Windows.Media.Media3D.GeometryModel3D;
-    //using MeshGeometry3D = System.Windows.Media.Media3D.MeshGeometry3D;
     using Point3D = System.Windows.Media.Media3D.Point3D;
     using Vector3D = System.Windows.Media.Media3D.Vector3D;
 
@@ -250,6 +243,14 @@ namespace wpfDagger
             NV_ClosestHitPhong,
             NV_ClosestHitPhongTextured,
 
+            BoundsUnitSphere,
+            IntersectUnitSphere,
+
+            TriangleAttributes,
+            AnyHitPhong,
+            ClosestHitPhong,
+            ClosestHitPhongTextured,
+
             /// <summary>
             /// Must be last
             /// </summary>
@@ -264,6 +265,9 @@ namespace wpfDagger
             NV_PhongMetal,
             NV_PhongTextured,
 
+            DefaultChecker,
+            //PhongTextured,
+
             /// <summary>
             /// Must be last
             /// </summary>
@@ -272,6 +276,8 @@ namespace wpfDagger
 
         readonly OptixProgram[] optixPrograms = new OptixProgram[(int)ProgramKey.Count];
         readonly Material[] optixMaterials = new Material[(int)MaterialKey.Count];
+
+        private readonly Dictionary<int, Material> cachedMaterials;
 
         private readonly DispatcherTimer backgroundTimer;
         private readonly DispatcherTimer invalidateTimer;
@@ -296,6 +302,9 @@ namespace wpfDagger
         private Int32Rect imageRect;
         private IntPtr backBufferPtr;
         private WriteableBitmap writeableBitmap;
+
+        private readonly DaggerfallWpf3D daggerUtil;
+        private readonly MeshReader daggerMeshReader;
 
         struct RecordGeometry
         {
@@ -341,6 +350,7 @@ namespace wpfDagger
             cameraLookAt = new float3(0, 0, 0);
             cameraUp = new float3(0, 1, 0);
             recordGeometry = new Dictionary<uint, RecordGeometry>();
+            cachedMaterials = new Dictionary<int, Material>();
 
             backgroundTimer = new DispatcherTimer(DispatcherPriority.Background);
             invalidateTimer = new DispatcherTimer(DispatcherPriority.Render);
@@ -348,6 +358,9 @@ namespace wpfDagger
             backgroundTimer.Interval = TimeSpan.FromMilliseconds(1000.0 / 60.0);
             invalidateTimer.Tick += InvalidateTimer_Tick;
             invalidateTimer.Interval = TimeSpan.FromMilliseconds(1000.0 / 30.0);
+
+            daggerUtil = FindResource("DaggerfallWpf") as DaggerfallWpf3D;
+            daggerMeshReader = FindResource("DaggerMeshReader") as MeshReader;
         }
 
         private void InvalidateTimer_Tick(object sender, EventArgs e)
@@ -382,20 +395,20 @@ namespace wpfDagger
             public float3[] normals;
             public float2[] texcoords;
             public uint[] indices;
-
-            public TriangleMesh(int size)
-            {
-                vertices = new float3[size];
-                normals = new float3[size];
-                texcoords = new float2[size];
-                indices = new uint[size];
-            }
+            public uint[] materials;
         }
 
         internal static TriangleMesh CreateTetrahedron(float H, float3 trans)
         {
             const int SIZE = 12;
-            TriangleMesh result = new TriangleMesh(SIZE);
+            TriangleMesh result = new TriangleMesh
+            {
+                vertices = new float3[SIZE],
+                normals = new float3[SIZE],
+                texcoords = new float2[SIZE],
+                indices = new uint[SIZE]
+            };
+
             // Side length
             float a = (3.0f * H) / (float)Math.Sqrt(6.0);
             // Offset for base vertices from apex
@@ -554,6 +567,7 @@ namespace wpfDagger
             float3 bgColor = BackgroundColor.ToFloat3();
             nvConstantBGMiss["bg_color"].SetFloat3(bgColor);
             //nvConstantBGMiss["bg_color"].Set(0.34f, 0.55f, 0.85f);
+            //nvConstantBGMiss["bg_color"].Set(1.0f, 1.0f, 1.0f);
             optixPrograms[(int)ProgramKey.NV_RayGenAccumCamera] = nvPinholeCamera;
             optixPrograms[(int)ProgramKey.NV_MissConstantBG] = nvConstantBGMiss;
             optixPrograms[(int)ProgramKey.NV_Exception] = nvException;
@@ -661,9 +675,14 @@ namespace wpfDagger
         {
             BasicLight[] lights = {
                 new BasicLight {
-                    Position = new float3( -1024.0f, 2048.0f, 32.0f ),
+                    Position = new float3( -256, 1024.0f, -768.0f ),
                     Color = new float3( 1.0f, 1.0f, 1.0f ),
                     castShadows = 1
+                },
+                new BasicLight {
+                    Position = new float3( -64, 8.0f, -64.0f ),
+                    Color = new float3( 0.015f, 0.015f, 0.015f ),
+                    castShadows = 0
                 }
             };
             BufferDesc lightDesc = new BufferDesc
@@ -681,16 +700,55 @@ namespace wpfDagger
 
         private void CreateGeometry()
         {
-            //// Unit Sphere
-            //contextModel.LogMessages.Add("Compiling unit sphere geometry programs");
-            //string unitSpherePTX = contextModel.CompilePtxFromSource("unit_sphere.cu", "unit_sphere");
-            //OptixProgram unitSphereBounds = contextModel.CreateFromPTXString(ref unitSpherePTX, "bounds");
-            //OptixProgram unitSphereIntersect = contextModel.CreateFromPTXString(ref unitSpherePTX, "intersect");
+            // Unit Sphere
+            contextModel.LogMessages.Add("Compiling unit sphere geometry programs");
+            string unitSpherePTX = contextModel.CompilePtxFromSource("unit_sphere.cu", "unit_sphere");
+            optixPrograms[(int)ProgramKey.BoundsUnitSphere] = contextModel.CreateFromPTXString(ref unitSpherePTX, "bounds");
+            optixPrograms[(int)ProgramKey.IntersectUnitSphere] = contextModel.CreateFromPTXString(ref unitSpherePTX, "intersect");
             //Geometry unitSphereGeometry = contextModel.CreateGeometry(unitSphereBounds, unitSphereIntersect);
             //GeometryInstance unitSphereInstance = contextModel.CreateGeometryInstance(unitSphereGeometry);
             //unitSphereInstance.Materials[0] = optixMaterials[(int)MaterialKey.NV_PhongMetal];
             //// add to top group
             //topObjectGroup.AddChild(unitSphereInstance);
+
+            contextModel.LogMessages.Add("Compiling phong material program");
+            string nvDir = Path.Combine(Directory.GetCurrentDirectory(), "cuda", "nvidia");
+            string nvHelpersSource = contextModel.ReadFileToEnd(Path.Combine(nvDir, "helpers.h"));
+            string nvCommonSource = contextModel.ReadFileToEnd(Path.Combine(nvDir, "common.h"));
+            string nvPhongSource = contextModel.ReadFileToEnd(Path.Combine(nvDir, "phong.h"));
+            string phongPTX = contextModel.CompilePtxFromString(
+                contextModel.ReadFileToEnd(Path.Combine(Directory.GetCurrentDirectory(), "cuda", "dagger_phong.cu")),
+                "dagger_phong",
+                null,
+                new string[] { nvCommonSource, nvHelpersSource, nvPhongSource },
+                new string[] { "common.h", "helpers.h", "phong.h" });
+            optixPrograms[(int)ProgramKey.AnyHitPhong] = contextModel.CreateFromPTXString(ref phongPTX, "any_hit_shadow");
+            optixPrograms[(int)ProgramKey.ClosestHitPhong] = contextModel.CreateFromPTXString(ref phongPTX, "closest_hit_radiance");
+            optixPrograms[(int)ProgramKey.ClosestHitPhongTextured] = contextModel.CreateFromPTXString(ref phongPTX, "closest_hit_radiance_textured");
+
+            // load uint version of triangle attributes
+            contextModel.LogMessages.Add("Compiling triangle attribute program");
+            string trianglesPTX = contextModel.CompilePtxFromSource("triangle_mesh.cu", "uint_triangles");
+            OptixProgram triangleAttributes = contextModel.CreateFromPTXString(ref trianglesPTX, "triangle_attributes");
+            optixPrograms[(int)ProgramKey.TriangleAttributes] = triangleAttributes;
+
+            Material checker = contextModel.CreateMaterial(
+                optixPrograms[(int)ProgramKey.NV_ClosestHitChecker],
+                optixPrograms[(int)ProgramKey.NV_AnyHitChecker]);
+            float3 ka1 = CheckerColorA.ToFloat3();
+            float3 ka2 = CheckerColorB.ToFloat3();
+            checker["Kd1"].SetFloat3(ka1);
+            checker["Ka1"].SetFloat3(ka1);
+            checker["Ks1"].Set(0.0f, 0.0f, 0.0f);
+            checker["Kd2"].SetFloat3(ka2);
+            checker["Ka2"].SetFloat3(ka2);
+            checker["Ks2"].Set(0.0f, 0.0f, 0.0f);
+            checker["inv_checker_size"].Set(4.0f, 4.0f, 4.0f);
+            checker["phong_exp1"].Set(0.0f);
+            checker["phong_exp2"].Set(0.0f);
+            checker["Kr1"].Set(0.1f, 0.1f, 0.1f);
+            checker["Kr2"].Set(0.0f, 0.0f, 0.0f);
+            optixMaterials[(int)MaterialKey.DefaultChecker] = checker;
 
             if (DataContext is RecordModel record)
             {
@@ -876,9 +934,8 @@ namespace wpfDagger
 
         private void SetRecordGeometry(ref RecordModel record)
         {
-            MeshReader reader = FindResource("DaggerMeshReader") as MeshReader;
             if (null != contextModel
-                && reader.GetModelData(record.Id, out ModelData model))
+                && daggerMeshReader.GetModelData(record.Id, out ModelData model))
             {
                 bool wasInvalidateEnabled = invalidateTimer.IsEnabled;
                 bool wasBackgroundEnabled = backgroundTimer.IsEnabled;
@@ -904,43 +961,95 @@ namespace wpfDagger
                     newGeometry.topGroup.ChildCount = 2;
                     newGeometry.topGroup[0] = newGeometry.geometryGroup;
                     newGeometry.topGroup[1] = newGeometry.triangleGeometryGroup;
+                    // bounding box
+                    float minX = model.Vertices.Min((v) => (float)v.X);
+                    float maxX = model.Vertices.Max((v) => (float)v.X);
+                    float minY = model.Vertices.Min((v) => (float)v.Y);
+                    float maxY = model.Vertices.Max((v) => (float)v.Y);
+                    float minZ = model.Vertices.Min((v) => (float)v.Z);
+                    float maxZ = model.Vertices.Max((v) => (float)v.Z);
 
                     TriangleMesh mesh = new TriangleMesh
                     {
-                        indices = model.Indices.ToArray(),
+                        indices = model.Indices,
                         normals = model.Normals.Select((n) => n.ToFloat3()).ToArray(),
                         texcoords = model.Texcoords.Select((uv) => uv.ToFloat2()).ToArray(),
-                        vertices = model.Vertices.Select((v) => v.ToFloat3()).ToArray()
+                        vertices = model.Vertices.Select((v) => v.ToFloat3()).ToArray(),
+                        materials = model.Materials
                     };
                     GeometryTriangles triangles = CreateGeometryTriangles(ref mesh);
-                    GeometryInstance trianglesInstance = contextModel.CreateGeometryInstance(triangles);
+                    GeometryInstance trianglesInstance = contextModel.CreateGeometryInstance(
+                        triangles,
+                        (uint)model.SubMeshes.Length);
+                    // must match when using material index buffer
+                    triangles.MaterialCount = (uint)model.SubMeshes.Length;
 
-                    //Material nvPhong = contextModel.CreateMaterial(
-                    //    optixPrograms[(int)ProgramKey.NV_ClosestHitPhong],
-                    //    optixPrograms[(int)ProgramKey.NV_AnyHitPhong]);
-                    //float3 modelColor = ModelColor.ToFloat3();
-                    //nvPhong["Ka"].SetFloat3(modelColor);
-                    //nvPhong["Kd"].SetFloat3(modelColor);
-                    //nvPhong["Ks"].Set(0.0f, 0.0f, 0.0f);
-                    //nvPhong["phong_exp"].Set(0.0f);
-                    //nvPhong["Kr"].Set(0.12f, 0.12f, 0.12f);
-                    //trianglesInstance.Materials[0] = nvPhong;
-                    trianglesInstance.Materials[0] = optixMaterials[(int)MaterialKey.NV_Checker];
-                    trianglesInstance["inv_checker_size"].Set(4.0f, 4.0f, 4.0f);
+                    // create an instance for each child (convert to material buffer)
+                    for (int s = 0; s < model.SubMeshes.Length; ++s)
+                    {
+                        var subMesh = model.SubMeshes[s];
+                        int materialKey = MaterialReader.MakeTextureKey(
+                            (short)subMesh.TextureArchive,
+                            (byte)subMesh.TextureRecord,
+                            (byte)0);
+                        if (cachedMaterials.ContainsKey(materialKey))
+                        {
+                            // use the cacned material
+                            trianglesInstance.Materials[s] = cachedMaterials[materialKey];
+                            continue;
+                        }
+                        else
+                        {
+                            byte[] textureImage = daggerUtil.MaterialReader.TextureReader.GetTextureBytes(
+                                TextureReader.CreateTextureSettings(
+                                    subMesh.TextureArchive,
+                                    subMesh.TextureRecord),
+                                out DaggerfallConnect.Utility.DFSize sz);
+                            if (sz.Width > 0 && sz.Height > 0)
+                            {
+                                // new textured material
+                                Material textureMaterial = contextModel.CreateMaterial(
+                                    optixPrograms[(int)ProgramKey.ClosestHitPhongTextured],
+                                    optixPrograms[(int)ProgramKey.AnyHitPhong]);
 
-                    //Material nvTexCoord = contextModel.CreateMaterial(
-                    //    optixPrograms[(int)ProgramKey.NV_ClosestHitTexCoord],
-                    //    optixPrograms[(int)ProgramKey.NV_AnyHitBarycentric]);
-                    //trianglesInstance.Materials[0] = nvTexCoord;
+                                // buffer for texture data
+                                OptixBuffer textureBuffer = contextModel.CreateBuffer(
+                                    new BufferDesc
+                                    {
+                                        Format = Format.UByte4,
+                                        Height = (uint)sz.Height,
+                                        Width = (uint)sz.Width,
+                                        Type = BufferType.Input
+                                    });
+                                textureBuffer.SetData(textureImage);
+                                // texture sampler
+                                TextureSamplerDesc desc = TextureSamplerDesc.Default;
+                                desc.Filter.Mag = FilterMode.Nearest;
+                                desc.Filter.Min = FilterMode.Nearest;
+                                desc.Wrap.WrapU = WrapMode.Repeat;
+                                desc.Wrap.WrapV = WrapMode.Repeat;
+                                TextureSampler textureSampler = contextModel.CreateTextureSampler(desc);
+                                textureSampler.SetBuffer(textureBuffer);
+                                // assign the sampler
+                                textureMaterial["Ka"].Set(0.0f, 0.0f, 0.0f);
+                                textureMaterial["Kd"].Set(1.0f, 1.0f, 1.0f);
+                                textureMaterial["Ks"].Set(0.0f, 0.0f, 0.0f);
+                                textureMaterial["phong_exp"].Set(0.0f);
+                                textureMaterial["Kr"].Set(0.01f, 0.01f, 0.01f);
+                                textureMaterial["Kd_map"].Set(textureSampler);
+                                // use the new material
+                                trianglesInstance.Materials[s] = textureMaterial;
+                                // cache material
+                                cachedMaterials[materialKey] = textureMaterial;
+                                continue;
+                            }
+                        }
+
+                        // use default material, do not cache
+                        trianglesInstance.Materials[s] = optixMaterials[(int)MaterialKey.DefaultChecker];
+                    }
 
                     newGeometry.triangleGeometryGroup.AddChild(trianglesInstance);
-
-                    float minX = mesh.vertices.Min((v) => v.X);
-                    float maxX = mesh.vertices.Max((v) => v.X);
-                    float minY = mesh.vertices.Min((v) => v.Y);
-                    float maxY = mesh.vertices.Max((v) => v.Y);
-                    float minZ = mesh.vertices.Min((v) => v.Z);
-                    float maxZ = mesh.vertices.Max((v) => v.Z);
 
                     const float cornerSize = 16.0f;
                     // define a regular tetrahedron, translated min,min,min
@@ -1102,20 +1211,37 @@ namespace wpfDagger
                     Type = BufferType.Input,
                     Width = primitives
                 });
+            OptixBuffer material_buffer = (null == mesh.materials)
+                ? null
+                : contextModel.CreateBuffer(
+                    new BufferDesc
+                    {
+                        Format = Format.UInt,
+                        Type = BufferType.Input,
+                        Width = primitives
+                    });
+            
             // Copy the mesh geometry into the device Buffers.
             vertex_buffer.SetData(mesh.vertices);
             normal_buffer.SetData(mesh.normals);
             texcoord_buffer.SetData(mesh.texcoords);
             index_buffer.SetData(mesh.indices);
+            // copy if available
+            material_buffer?.SetData(mesh.materials);
+
             // Create a GeometryTriangles object.
             // Set an attribute program for the GeometryTriangles, which will compute
             // things like normals and texture coordinates based on the barycentric
             // coordindates of the intersection.
             GeometryTriangles triangles = contextModel.CreateGeometryTriangles(
-                optixPrograms[(int)ProgramKey.NV_TriangleAttributes],
+                optixPrograms[(int)ProgramKey.TriangleAttributes],
                 primitives);
             triangles.SetTriangleIndices(ref index_buffer);
             triangles.SetVertices(vertices, ref vertex_buffer);
+            if (null != material_buffer)
+            {
+                triangles.SetMaterialIndices(ref material_buffer);
+            }
             triangles.SetBuildFlags(RTgeometrybuildflags.RT_GEOMETRY_BUILD_FLAG_NONE);
             triangles["index_buffer"].Set(index_buffer);
             triangles["vertex_buffer"].Set(vertex_buffer);

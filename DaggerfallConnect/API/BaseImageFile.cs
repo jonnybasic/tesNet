@@ -267,6 +267,59 @@ namespace DaggerfallConnect.Arena2
         }
 
         /// <summary>
+        /// Get the raw bytes
+        /// </summary>
+        /// <param name="srcBitmap">Source DFBitmap.</param>
+        /// <param name="alphaIndex">Index to receive transparent alpha.</param>
+        /// <param name="border">Number of pixels border to add around image.</param>
+        /// <param name="sizeOut">Receives image dimensions with borders included.</param>
+        /// <param name="emissionIndex">Force matching emissive index to non-transparent.</param>
+        /// <param name="customAlphaValue"></param>
+        /// <returns>byte[]</returns>
+        public byte[] GetBytesRGBA(DFBitmap srcBitmap, int alphaIndex, int border, out DFSize sizeOut, int emissionIndex = -1, int customAlphaValue = 255)
+        {
+            // Calculate dimensions
+            int srcWidth = srcBitmap.Width;
+            int srcHeight = srcBitmap.Height;
+            int dstWidth = srcWidth + border * 2;
+            int dstHeight = srcHeight + border * 2;
+            const int dstComponent = 4;
+
+            byte[] data = new byte[dstWidth * dstHeight * dstComponent];
+            int index, offset, srcRow, dstRow;
+            byte[] paletteData = myPalette.PaletteBuffer;
+            long dataIndex = 0;
+            for (int y = 0; y < srcHeight; y++)
+            {
+                // Get row position
+                srcRow = y * srcWidth;
+                dstRow = (dstHeight - 1 - border - y) * dstWidth;
+
+                // Write data for this row
+                for (int x = 0; x < srcWidth; x++)
+                {
+                    index = srcBitmap.Data[srcRow + x];
+                    offset = myPalette.HeaderLength + index * 3;
+                    // RGBA
+                    data[dataIndex++] = paletteData[offset + 0]; // R
+                    data[dataIndex++] = paletteData[offset + 1]; // G
+                    data[dataIndex++] = paletteData[offset + 2]; // B
+                    // Make emissive parts fully non-transparent alpha
+                    // OR General cutout alpha with custom alpha output
+                    data[dataIndex++] = (emissionIndex == index) // A
+                        ? (byte)255
+                        : (alphaIndex == index)
+                            ? (byte)0
+                            : (byte)customAlphaValue;
+                }
+            }
+
+            sizeOut = new DFSize(dstWidth, dstHeight);
+
+            return data;
+        }
+
+        /// <summary>
         /// Gets a Color32 array for engine.
         /// </summary>
         /// <param name="srcBitmap">Source DFBitmap.</param>

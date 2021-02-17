@@ -212,6 +212,13 @@ namespace wpfDagger
             return result;
         }
 
+        internal TextureSampler CreateTextureSampler(TextureSamplerDesc desc)
+        {
+            TextureSampler result = new TextureSampler(Context, desc);
+            nodes.Add(result);
+            return result;
+        }
+
         internal Group CreateGroup(AccelBuilder builder = AccelBuilder.NoAccel)
         {
             return CreateGroup(builder, out Acceleration accel);

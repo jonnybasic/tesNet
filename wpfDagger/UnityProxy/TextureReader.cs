@@ -88,6 +88,47 @@ namespace DaggerfallWorkshopWpf
             return settings;
         }
 
+        public byte[] GetTextureBytes(GetTextureSettings settings, out DFSize sz)
+        {
+            // Check if window, spectral, or auto-emissive
+            //bool isWindow = ClimateSwaps.IsExteriorWindow(settings.archive, settings.record);
+            bool isSpectral = TextureFile.IsSpectralArchive(settings.archive);
+            bool isEmissive = IsEmissive(settings.archive, settings.record);
+
+            // Assign texture file
+            TextureFile textureFile = new TextureFile(Path.Combine(
+                Arena2Path,
+                TextureFile.IndexToFileName(settings.archive)),
+                FileUsage.UseMemory,
+                true);
+
+            // Get starting DFBitmap
+            DFBitmap srcBitmap = textureFile.GetDFBitmap(settings.record, settings.frame);
+
+            if (isSpectral)
+            {
+                // Adjust source bitmap to set spectral grays
+                // 180 = transparency amount (~70% visible)
+                SetSpectral(ref srcBitmap);
+                return textureFile.GetBytesRGBA(
+                    srcBitmap,
+                    settings.alphaIndex,
+                    settings.borderSize,
+                    out sz,
+                    spectralEyesPatched,
+                    180);
+            }
+            else
+            {
+                // Read direct from source bitmap
+                return textureFile.GetBytesRGBA(
+                    srcBitmap,
+                    settings.alphaIndex,
+                    settings.borderSize,
+                    out sz);
+            }
+        }
+
         /// <summary>
         /// Gets Unity textures from Daggerfall texture with all options.
         /// Returns all supported texture maps for Standard shader in one call.

@@ -6,6 +6,11 @@ using System.Text;
 namespace OptixCore.Library.Native
 {    
     using RTsize = UInt64;
+    using RTcontext = IntPtr;
+    using RTbuffer = IntPtr;
+    using RTgeometrytriangles = IntPtr;
+    using RTgeometry = IntPtr;
+    using RTprogram = IntPtr;
 
     internal unsafe class Api
     {
@@ -631,64 +636,73 @@ namespace OptixCore.Library.Native
 
 
         [DllImport(OptixLibraries.OptixLib)]
-        public static extern RTresult rtGeometryTrianglesCreate(IntPtr context, ref IntPtr geometrytriangles);
+        public static extern RTresult rtGeometryTrianglesCreate(RTcontext context, ref RTgeometrytriangles geometrytriangles);
 
         [DllImport(OptixLibraries.OptixLib)]
-        public static extern RTresult rtGeometryTrianglesDestroy(IntPtr geometrytriangles);
+        public static extern RTresult rtGeometryTrianglesDestroy(RTgeometrytriangles geometrytriangles);
 
         [DllImport(OptixLibraries.OptixLib)]
-        public static extern RTresult rtGeometryTrianglesValidate(IntPtr geometrytriangles);
+        public static extern RTresult rtGeometryTrianglesValidate(RTgeometrytriangles geometrytriangles);
 
         [DllImport(OptixLibraries.OptixLib)]
-        public static extern RTresult rtGeometryTrianglesGetContext(IntPtr geometrytriangles, ref IntPtr context);
+        public static extern RTresult rtGeometryTrianglesGetContext(RTgeometrytriangles geometrytriangles, ref RTcontext context);
 
         [DllImport(OptixLibraries.OptixLib)]
-        public static extern RTresult rtGeometryTrianglesSetPrimitiveIndexOffset(IntPtr geometrytriangles, uint index_offset);
+        public static extern RTresult rtGeometryTrianglesSetPrimitiveIndexOffset(RTgeometrytriangles geometrytriangles, uint index_offset);
 
         [DllImport(OptixLibraries.OptixLib)]
-        public static extern RTresult rtGeometryTrianglesGetPrimitiveIndexOffset(IntPtr geometrytriangles, out uint index_offset);
+        public static extern RTresult rtGeometryTrianglesGetPrimitiveIndexOffset(RTgeometrytriangles geometrytriangles, out uint index_offset);
 
         [DllImport(OptixLibraries.OptixLib)]
-        public static extern RTresult rtGeometryTrianglesSetPreTransformMatrix(IntPtr geometrytriangles, int transpose, Matrix4x4 m);
+        public static extern RTresult rtGeometryTrianglesSetPreTransformMatrix(RTgeometrytriangles geometrytriangles, int transpose, Matrix4x4 m);
 
         [DllImport(OptixLibraries.OptixLib)]
-        public static extern RTresult rtGeometryTrianglesGetPreTransformMatrix(IntPtr geometrytriangles, int transpose, ref Matrix4x4 m);
+        public static extern RTresult rtGeometryTrianglesGetPreTransformMatrix(RTgeometrytriangles geometrytriangles, int transpose, ref Matrix4x4 m);
 
         [DllImport(OptixLibraries.OptixLib)]
-        public static extern RTresult rtGeometryTrianglesSetPrimitiveCount(IntPtr geometrytriangles, uint num_primitives);
+        public static extern RTresult rtGeometryTrianglesSetPrimitiveCount(RTgeometrytriangles geometrytriangles, uint num_primitives);
 
         [DllImport(OptixLibraries.OptixLib)]
-        public static extern RTresult rtGeometryTrianglesGetPrimitiveCount(IntPtr geometrytriangles, out uint num_primitives);
+        public static extern RTresult rtGeometryTrianglesGetPrimitiveCount(RTgeometrytriangles geometrytriangles, out uint num_primitives);
 
         [DllImport(OptixLibraries.OptixLib)]
-        public static extern RTresult rtGeometryTrianglesSetTriangleIndices(IntPtr geometrytriangles, IntPtr index_buffer, uint index_buffer_byte_offset, uint tri_indices_byte_stride, RTformat tri_indices_format);
+        public static extern RTresult rtGeometryTrianglesSetTriangleIndices(RTgeometrytriangles geometrytriangles, RTbuffer index_buffer, RTsize byte_offset, RTsize byte_stride, RTformat index_format);
 
         [DllImport(OptixLibraries.OptixLib)]
-        public static extern RTresult rtGeometryTrianglesSetVertices(IntPtr geometrytriangles, uint vertex_count, IntPtr vertex_buffer, uint vertex_buffer_byte_offset, uint vertex_byte_stride, RTformat position_format);
+        public static extern RTresult rtGeometryTrianglesGetMaterialCount(RTgeometrytriangles geometrytriangles, out uint num_mterials);
 
         [DllImport(OptixLibraries.OptixLib)]
-        public static extern RTresult rtGeometryTrianglesSetBuildFlags(IntPtr geometrytriangles, RTgeometrybuildflags build_flags);
+        public static extern RTresult rtGeometryTrianglesSetMaterialCount(RTgeometrytriangles geometrytriangles, uint num_materials);
+
+        [DllImport(OptixLibraries.OptixLib)]
+        public static extern RTresult rtGeometryTrianglesSetMaterialIndices(RTgeometrytriangles geometrytriangles, RTbuffer material_index_buffer, RTsize byte_offset, RTsize byte_stride, RTformat index_format);
+
+        [DllImport(OptixLibraries.OptixLib)]
+        public static extern RTresult rtGeometryTrianglesSetVertices(RTgeometrytriangles geometrytriangles, uint vertex_count, RTbuffer vertex_buffer, RTsize byte_offset, RTsize byte_stride, RTformat position_format);
+
+        [DllImport(OptixLibraries.OptixLib)]
+        public static extern RTresult rtGeometryTrianglesSetBuildFlags(RTgeometrytriangles geometrytriangles, RTgeometrybuildflags build_flags);
 
         [DllImport(OptixLibraries.OptixLib, CharSet = CharSet.Ansi)]
-        public static extern RTresult rtGeometryTrianglesDeclareVariable(IntPtr geometrytriangles, [In] string name, out IntPtr v);
+        public static extern RTresult rtGeometryTrianglesDeclareVariable(RTgeometrytriangles geometrytriangles, [In] string name, out IntPtr v);
 
         [DllImport(OptixLibraries.OptixLib, CharSet = CharSet.Ansi)]
-        public static extern RTresult rtGeometryTrianglesQueryVariable(IntPtr geometrytriangles, [In] string name, out IntPtr v);
+        public static extern RTresult rtGeometryTrianglesQueryVariable(RTgeometrytriangles geometrytriangles, [In] string name, out IntPtr v);
 
         [DllImport(OptixLibraries.OptixLib)]
-        public static extern RTresult rtGeometryTrianglesRemoveVariable(IntPtr geometrytriangles, IntPtr v);
+        public static extern RTresult rtGeometryTrianglesRemoveVariable(RTgeometrytriangles geometrytriangles, IntPtr v);
 
         [DllImport(OptixLibraries.OptixLib)]
-        public static extern RTresult rtGeometryTrianglesGetVariableCount(IntPtr geometrytriangles, out uint count);
+        public static extern RTresult rtGeometryTrianglesGetVariableCount(RTgeometrytriangles geometrytriangles, out uint count);
 
         [DllImport(OptixLibraries.OptixLib)]
-        public static extern RTresult rtGeometryTrianglesGetVariable(IntPtr geometrytriangles, uint index, out IntPtr v);
+        public static extern RTresult rtGeometryTrianglesGetVariable(RTgeometrytriangles geometrytriangles, uint index, out IntPtr v);
 
         [DllImport(OptixLibraries.OptixLib)]
-        public static extern RTresult rtGeometryTrianglesSetAttributeProgram(IntPtr geometrytriangles, IntPtr program);
+        public static extern RTresult rtGeometryTrianglesSetAttributeProgram(RTgeometrytriangles geometrytriangles, RTprogram program);
 
         [DllImport(OptixLibraries.OptixLib)]
-        public static extern RTresult rtGeometryTrianglesGetAttributeProgram(IntPtr geometrytriangles, out IntPtr program);
+        public static extern RTresult rtGeometryTrianglesGetAttributeProgram(RTgeometrytriangles geometrytriangles, out RTprogram program);
 
 
 
