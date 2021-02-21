@@ -8,7 +8,7 @@
 // 
 // Notes:
 //
-
+#if true
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -97,7 +97,7 @@ namespace DaggerfallConnect.Save
 
         uint lastSkillCheckTime = 0;
 
-        readonly List<PlayerEntity.RegionDataRecord> regionDataList = new List<PlayerEntity.RegionDataRecord>();
+        readonly List<RegionDataRecord> regionDataList = new List<RegionDataRecord>();
         readonly List<FactionFile.FactionData> factions = new List<FactionFile.FactionData>();
 
         #endregion
@@ -355,7 +355,7 @@ namespace DaggerfallConnect.Save
         /// <summary>
         /// Gets array of regionData read from savevars.
         /// </summary>
-        public PlayerEntity.RegionDataRecord[] RegionData
+        public RegionDataRecord[] RegionData
         {
             get { return regionDataList.ToArray(); }
         }
@@ -584,7 +584,7 @@ namespace DaggerfallConnect.Save
             regionDataList.Clear();
             for (int i = 0; i < regionCount; i++)
             {
-                PlayerEntity.RegionDataRecord regionData = new PlayerEntity.RegionDataRecord();
+                RegionDataRecord regionData = new RegionDataRecord();
                 reader.BaseStream.Position = regionDataOffset + (i * regionDataLength);
                 regionData.Values = new byte[29];
 
@@ -662,3 +662,4 @@ namespace DaggerfallConnect.Save
         #endregion
     }
 }
+#endif

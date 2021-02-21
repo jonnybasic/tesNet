@@ -16,7 +16,9 @@ using System.Collections.Generic;
 using DaggerfallConnect.Utility;
 using DaggerfallConnect.Arena2;
 using DaggerfallWorkshop;
+#if !NO_UNITY
 using DaggerfallWorkshop.Game;
+#endif
 #endregion
 
 namespace DaggerfallConnect.Save
@@ -41,7 +43,7 @@ namespace DaggerfallConnect.Save
         RumorFile rumorFile;
         SaveImage saveImage;
 
-        #region Properties
+#region Properties
 
         /// <summary>
         /// Gets currently open parent path containing ARENA2 and SAVE0-SAVE5.
@@ -107,9 +109,9 @@ namespace DaggerfallConnect.Save
             get { return saveName; }
         }
 
-        #endregion
+#endregion
 
-        #region Constructors
+#region Constructors
 
         public SaveGames()
         {
@@ -121,9 +123,9 @@ namespace DaggerfallConnect.Save
             OpenSavesPath(path, readOnly);
         }
 
-        #endregion
+#endregion
 
-        #region Public Methods
+#region Public Methods
 
         /// <summary>
         /// Enumerates all save games in parent path provided.
@@ -209,7 +211,7 @@ namespace DaggerfallConnect.Save
             mapSave = new BsaFile();
             if (!mapSave.Load(Path.Combine(saveGameDict[save], "MAPSAVE.SAV"), FileUsage.UseMemory, true))
                 throw new Exception("Could not open MapSave for index " + save);
-
+#if !NO_UNITY
             if (loadingInGame) // Only check MAPSAVE if loading in-game, not if viewing in Save Explorer. There is a noticeable delay for
                                // Save Explorer as the classic saves are loaded, and a null exception if the Save Explorer is opened
                                // without the game running in the editor, due to PlayerGPS.dfUnity not being instantiated.
@@ -256,7 +258,7 @@ namespace DaggerfallConnect.Save
             bioFile = new BioFile();
             if (!bioFile.Load(Path.Combine(saveGameDict[save], "BIO.DAT")))
                 UnityEngine.Debug.Log("Could not open BIO.DAT for index " + save);
-
+#endif
             return true;
         }
 
@@ -277,9 +279,9 @@ namespace DaggerfallConnect.Save
             }
         }
 
-        #endregion
+#endregion
 
-        #region Private Methods
+#region Private Methods
 
         /*string GetSaveIndexName(int save)
         {
@@ -348,6 +350,6 @@ namespace DaggerfallConnect.Save
             return true;
         }
 
-        #endregion
+#endregion
     }
 }

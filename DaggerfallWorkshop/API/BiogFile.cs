@@ -8,14 +8,14 @@
 //
 // Notes:
 //
-
+#if !NO_UNITY
 using System;
 using DaggerfallConnect.Utility;
 using DaggerfallWorkshop;
 using System.IO;
 using System.Collections.Generic;
-using DaggerfallWorkshop.Game.Entity;
 using UnityEngine;
+using DaggerfallWorkshop.Game.Entity;
 using DaggerfallWorkshop.Game;
 using DaggerfallWorkshop.Game.Items;
 using DaggerfallWorkshop.Game.Player;
@@ -136,7 +136,7 @@ namespace DaggerfallConnect.Arena2
         {
             const int tokensStart = 4116;
 
-            #region Parse answer tokens
+#region Parse answer tokens
             List<int>[] tokenLists = new List<int>[questionCount * 2];
             tokenLists[0] = Q1Tokens;
             tokenLists[1] = Q2Tokens;
@@ -175,7 +175,7 @@ namespace DaggerfallConnect.Arena2
                     }
                 }
             }
-            #endregion
+#endregion
 
             TextFile.Token lastToken = new TextFile.Token();
             GameManager.Instance.PlayerEntity.BirthRaceTemplate = characterDocument.raceTemplate; // Need correct race set when parsing %ra macro
@@ -211,7 +211,7 @@ namespace DaggerfallConnect.Arena2
             }
         }
 
-        #region Static Methods
+#region Static Methods
 
         private static void ApplyPlayerEffect(PlayerEntity playerEntity, string effect)
         {
@@ -494,9 +494,9 @@ namespace DaggerfallConnect.Arena2
             return selectedIndex;
         }
 
-        #endregion
+#endregion
 
-        #region Properties
+#region Properties
 
         public Question[] Questions
         {
@@ -565,6 +565,7 @@ namespace DaggerfallConnect.Arena2
         public List<int> Q11Tokens { get; set; }
         public List<int> Q12Tokens { get; set; }
 
-        #endregion
+#endregion
     }
 }
+#endif

@@ -82,6 +82,11 @@ namespace UnityEngine
 
         public static implicit operator Color(Color32 c)
             => ColorProxy.FromArgb(c.a, c.r, c.g, c.b);
+
+        public static Color32 Lerp(Color neutralColor, Color32 color32, float scale)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public struct Color
@@ -140,6 +145,11 @@ namespace UnityEngine
             => c1.color != c2.color;
 
         public static Color32 Lerp(Color white, Color grey, float value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static void RGBToHSV(Color32 color32, out float h, out float s, out float v)
         {
             throw new NotImplementedException();
         }

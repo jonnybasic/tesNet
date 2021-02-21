@@ -8,7 +8,7 @@
 //
 // Notes:
 //
-
+#if !NO_UNITY
 using DaggerfallWorkshop.Utility;
 using DaggerfallWorkshop.Game.UserInterfaceWindows;
 using DaggerfallWorkshop;
@@ -639,3 +639,4 @@ namespace DaggerfallConnect.Arena2
         }
     }
 }
+#endif

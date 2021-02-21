@@ -84,6 +84,7 @@ namespace DaggerfallWorkshop.Game.Entity
         /// <returns>True if all at max.</returns>
         public bool IsAllMax()
         {
+#if !NO_GAME
             int max = FormulaHelper.MaxStatValue();
             return (
                 PermanentStrength == max &&
@@ -94,6 +95,9 @@ namespace DaggerfallWorkshop.Game.Entity
                 PermanentPersonality == max &&
                 PermanentSpeed == max &&
                 PermanentLuck == max);
+#else
+            return false;
+#endif
         }
 
         /// <summary>
@@ -143,9 +147,9 @@ namespace DaggerfallWorkshop.Game.Entity
             return newStats;
         }
 
-        #endregion
+#endregion
 
-        #region Getters
+#region Getters
 
         /// <summary>
         /// Gets live stat value by enum, including effect mods.
@@ -155,7 +159,11 @@ namespace DaggerfallWorkshop.Game.Entity
         public int GetLiveStatValue(DFCareer.Stats stat)
         {
             int value = GetPermanentStatValue(stat) + mods[(int)stat];
+#if !NO_GAME
             int maxValue = FormulaHelper.MaxStatValue() + maxMods[(int)stat];
+#else
+            int maxValue = 10;
+#endif
 
             // Clamp live stat to 0-maxValue (accounting for any max value mods)
             value = Mathf.Clamp(value, 0, maxValue);
@@ -228,9 +236,9 @@ namespace DaggerfallWorkshop.Game.Entity
             Array.Copy(statMaxMods, maxMods, Count);
         }
 
-        #endregion
+#endregion
 
-        #region Setters
+#region Setters
 
         /// <summary>
         /// Sets permanent stat value by enum, does not change effect mods.
@@ -297,6 +305,6 @@ namespace DaggerfallWorkshop.Game.Entity
             }
         }
 
-        #endregion
+#endregion
     }
 }

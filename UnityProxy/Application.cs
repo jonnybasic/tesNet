@@ -85,6 +85,11 @@ namespace UnityEngine
             throw new NotImplementedException();
         }
 
+        public static object Load(string name)
+        {
+            throw new NotImplementedException();
+        }
+
         public static T[] FindObjectsOfTypeAll<T>()
         {
             throw new NotImplementedException();

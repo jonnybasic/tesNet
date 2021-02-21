@@ -8,7 +8,7 @@
 // 
 // Notes:
 //
-
+#if !NO_UNITY
 #region Using Statements
 using System;
 using System.IO;
@@ -27,7 +27,7 @@ namespace DaggerfallConnect.Arena2
     /// </summary>
     public class MapsFile
     {
-        #region Class Variables
+#region Class Variables
 
         public const int WorldMapTerrainDim = 32768;
         public const int WorldMapTileDim = 128;
@@ -144,9 +144,9 @@ namespace DaggerfallConnect.Arena2
         /// </summary>
         private bool isReady = false;
 
-        #endregion
+#endregion
 
-        #region Class Structures
+#region Class Structures
 
         /// <summary>
         /// Represents a single region record.
@@ -176,9 +176,9 @@ namespace DaggerfallConnect.Arena2
             public UInt16 ExteriorLocationId;
         }
 
-        #endregion
+#endregion
 
-        #region Static Properties
+#region Static Properties
 
         /// <summary>
         /// Gets default MAPS.BSA filename.
@@ -188,9 +188,9 @@ namespace DaggerfallConnect.Arena2
             get { return "MAPS.BSA"; }
         }
 
-        #endregion
+#endregion
 
-        #region Constructors
+#region Constructors
 
         /// <summary>
         /// Default constructor.
@@ -210,9 +210,9 @@ namespace DaggerfallConnect.Arena2
             Load(filePath, usage, readOnly);
         }
 
-        #endregion
+#endregion
 
-        #region Public Properties
+#region Public Properties
 
         /// <summary>
         /// If true then decomposed regions will be destroyed every time a different region is fetched.
@@ -282,9 +282,9 @@ namespace DaggerfallConnect.Arena2
             get { return climatePak; }
         }
 
-        #endregion
+#endregion
 
-        #region Static Properties
+#region Static Properties
 
         public enum Climates
         {
@@ -316,9 +316,9 @@ namespace DaggerfallConnect.Arena2
             get { return GetWorldClimateSettings(DefaultClimate); }
         }
 
-        #endregion
+#endregion
 
-        #region Static Public Methods
+#region Static Public Methods
 
         /// <summary>
         /// Converts longitude and latitude to map pixel coordinates.
@@ -525,9 +525,9 @@ namespace DaggerfallConnect.Arena2
             return settings;
         }
 
-        #endregion
+#endregion
 
-        #region Public Methods
+#region Public Methods
 
         /// <summary>
         /// Load MAPS.BSA file.
@@ -906,9 +906,9 @@ namespace DaggerfallConnect.Arena2
             return politicPak.SetValue(mapPixelX, mapPixelY, value);
         }
 
-        #endregion
+#endregion
 
-        #region Readers
+#region Readers
 
         /// <summary>
         /// Read a region.
@@ -1294,9 +1294,9 @@ namespace DaggerfallConnect.Arena2
             dfLocation.HasDungeon = true;
         }
 
-        #endregion
+#endregion
 
-        #region ExperimentalSmallerDungeons
+#region ExperimentalSmallerDungeons
 
         // Generates a smaller dungeon by overwriting the block layout
         // Creates a single interior block surrounded by 4 border blocks (smallest viable dungeon)
@@ -1388,6 +1388,347 @@ namespace DaggerfallConnect.Arena2
             return filteredBlocks[DaggerfallWorkshop.DFRandom.random_range(filteredBlocks.Count)];
         }
 
-        #endregion
+#endregion
     }
 }
+#else
+using System;
+using System.IO;
+using System.Collections.Generic;
+using DaggerfallConnect.Utility;
+using DaggerfallWorkshop;
+using DaggerfallWorkshop.Game;
+
+namespace DaggerfallConnect.Arena2
+{
+    /// <summary>
+    /// Connects to MAPS.BSA to enumerate locations within a specific region and extract their layouts.
+    /// </summary>
+    public class MapsFile
+    {
+        #region Class Variables
+
+        public const int WorldMapTerrainDim = 32768;
+        public const int WorldMapTileDim = 128;
+        public const int WorldMapRMBDim = 4096;
+        public const int MinWorldCoordX = 0;
+        public const int MinWorldCoordZ = 0;
+        public const int MaxWorldCoordX = 32768000;
+        public const int MaxWorldCoordZ = 16384000;
+        public const int MinWorldTileCoordX = 0;
+        public const int MaxWorldTileCoordX = 128000;
+        public const int MinWorldTileCoordZ = 0;
+        public const int MaxWorldTileCoordZ = 64000;
+        public const int MinMapPixelX = 0;
+        public const int MinMapPixelY = 0;
+        public const int MaxMapPixelX = 1000;
+        public const int MaxMapPixelY = 500;
+
+        /// <summary>
+        /// All region names.
+        /// </summary>
+        private static readonly string[] regionNames = {
+            "Alik'r Desert", "Dragontail Mountains", "Glenpoint Foothills", "Daggerfall Bluffs",
+            "Yeorth Burrowland", "Dwynnen", "Ravennian Forest", "Devilrock",
+            "Malekna Forest", "Isle of Balfiera", "Bantha", "Dak'fron",
+            "Islands in the Western Iliac Bay", "Tamarilyn Point", "Lainlyn Cliffs", "Bjoulsae River",
+            "Wrothgarian Mountains", "Daggerfall", "Glenpoint", "Betony", "Sentinel", "Anticlere", "Lainlyn", "Wayrest",
+            "Gen Tem High Rock village", "Gen Rai Hammerfell village", "Orsinium Area", "Skeffington Wood",
+            "Hammerfell bay coast", "Hammerfell sea coast", "High Rock bay coast", "High Rock sea coast",
+            "Northmoor", "Menevia", "Alcaire", "Koegria", "Bhoriane", "Kambria", "Phrygias", "Urvaius",
+            "Ykalon", "Daenia", "Shalgora", "Abibon-Gora", "Kairou", "Pothago", "Myrkwasa", "Ayasofya",
+            "Tigonus", "Kozanset", "Satakalaam", "Totambu", "Mournoth", "Ephesus", "Santaki", "Antiphyllos",
+            "Bergama", "Gavaudon", "Tulune", "Glenumbra Moors", "Ilessan Hills", "Cybiades"
+        };
+
+        /// <summary>
+        /// All region races, primarily used to generate townsfolk names. In the array extracted from FALL.EXE:
+        /// 0 = Breton, 1 = Redguard.
+        /// </summary>
+        private static readonly byte[] regionRaces = {
+            1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1,
+            0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0,
+            0, 1
+        };
+
+        /// <summary>
+        /// Region temple faction IDs, extracted from FALL.EXE.
+        /// </summary>
+        private static readonly int[] regionTemples = {
+            106,  82,   0,   0,   0,  98,   0,  0,   0,  92,
+              0, 106,   0,   0,   0,  84,  36,  36,  84,  88,
+             82,  88,  98,  92,   0,   0,  82,  0,   0,   0,
+              0,   0,  88,  94,  36,  94, 106, 84, 106, 106,
+             88,  98,  82,  98,  84,  94,  36, 88,  94,  36,
+             98,  84, 106,  88, 106,  88,  92, 84,  98,  88,
+             82,  94
+        };
+
+        /// <summary>
+        /// Block file prefixes.
+        /// </summary>
+        private readonly string[] rmbBlockPrefixes = {
+            "TVRN", "GENR", "RESI", "WEAP", "ARMR", "ALCH", "BANK", "BOOK",
+            "CLOT", "FURN", "GEMS", "LIBR", "PAWN", "TEMP", "TEMP", "PALA",
+            "FARM", "DUNG", "CAST", "MANR", "SHRI", "RUIN", "SHCK", "GRVE",
+            "FILL", "KRAV", "KDRA", "KOWL", "KMOO", "KCAN", "KFLA", "KHOR",
+            "KROS", "KWHE", "KSCA", "KHAW", "MAGE", "THIE", "DARK", "FIGH",
+            "CUST", "WALL", "MARK", "SHIP", "WITC"
+        };
+
+        /// <summary>
+        /// Letters that form the second part of an RMB block name.
+        /// </summary>
+        readonly string[] letter2Array = { "A", "L", "M", "S" };
+
+        /// <summary>
+        /// RDB block letters array.
+        /// </summary>
+        private readonly string[] rdbBlockLetters = { "N", "W", "L", "S", "B", "M" };
+
+        /// <summary>
+        /// Auto-discard behaviour enabled or disabled.
+        /// </summary>
+        private bool autoDiscardValue = true;
+
+        /// <summary>
+        /// The last region opened. Used by auto-discard logic.
+        /// </summary>
+        private int lastRegion = -1;
+
+        /// <summary>
+        /// The BsaFile representing MAPS.BSA.
+        /// </summary>
+        private readonly BsaFile bsaFile = new BsaFile();
+
+        /// <summary>
+        /// Array of decomposed region records.
+        /// </summary>
+        private RegionRecord[] regions;
+
+        /// <summary>
+        /// Climate PAK file.
+        /// </summary>
+        private PakFile climatePak;
+
+        /// <summary>
+        /// Politic PAK file.
+        /// </summary>
+        private PakFile politicPak;
+
+        /// <summary>
+        /// Flag set when class is loaded and ready.
+        /// </summary>
+        private bool isReady = false;
+
+        #endregion
+
+        #region Class Structures
+
+        /// <summary>
+        /// Represents a single region record.
+        /// </summary>
+        private struct RegionRecord
+        {
+            public string Name;
+            public FileProxy MapNames;
+            public FileProxy MapTable;
+            public FileProxy MapPItem;
+            public FileProxy MapDItem;
+            public DFRegion DFRegion;
+        }
+
+        /// <summary>
+        /// Offsets to dungeon records.
+        /// </summary>
+        private struct DungeonOffset
+        {
+            /// <summary>Offset in bytes relative to end of offset list.</summary>
+            public UInt32 Offset;
+
+            /// <summary>Is TRUE (0x0001) for all elements.</summary>
+            public UInt16 IsDungeon;
+
+            /// <summary>The exterior location this dungeon is paired with.</summary>
+            public UInt16 ExteriorLocationId;
+        }
+
+        #endregion
+
+        #region Static Properties
+
+        /// <summary>
+        /// Gets default MAPS.BSA filename.
+        /// </summary>
+        public static string Filename
+        {
+            get { return "MAPS.BSA"; }
+        }
+
+        #endregion
+
+        #region Public Properties
+
+        /// <summary>
+        /// If true then decomposed regions will be destroyed every time a different region is fetched.
+        ///  If false then decomposed regions will be maintained until DiscardRegion() or DiscardAllRegions() is called.
+        ///  Turning off auto-discard will speed up region retrieval times at the expense of RAM. For best results, disable
+        ///  auto-discard and impose your own caching scheme using LoadRecord() and DiscardRecord() based on your application
+        ///  needs.
+        /// </summary>
+        public bool AutoDiscard
+        {
+            get { return autoDiscardValue; }
+            set { autoDiscardValue = value; }
+        }
+
+        /// <summary>
+        /// Number of regions in MAPS.BSA.
+        /// </summary>
+        public int RegionCount
+        {
+            get { return bsaFile.Count / 4; }
+        }
+
+        /// <summary>
+        /// Gets all region names as string array.
+        /// </summary>
+        public static string[] RegionNames
+        {
+            get { return regionNames; }
+        }
+
+        /// <summary>
+        /// Gets all region races as byte array.
+        /// </summary>
+        public static byte[] RegionRaces
+        {
+            get { return regionRaces; }
+        }
+
+        /// <summary>
+        /// Gets region temple faction IDs.
+        /// </summary>
+        public static int[] RegionTemples
+        {
+            get { return regionTemples; }
+        }
+
+        /// <summary>
+        /// Gets raw MAPS.BSA file.
+        /// </summary>
+        public BsaFile BsaFile
+        {
+            get { return bsaFile; }
+        }
+
+        /// <summary>
+        /// True when ready to load regions and locations, otherwise false.
+        /// </summary>
+        public bool Ready
+        {
+            get { return isReady; }
+        }
+
+        /// <summary>
+        /// Gets internal climate data.
+        /// </summary>
+        public PakFile ClimateFile
+        {
+            get { return climatePak; }
+        }
+
+        #endregion
+
+        #region Static Properties
+
+        public enum Climates
+        {
+            Ocean = 223,
+            Desert = 224,
+            Desert2 = 225, // seen in dak'fron
+            Mountain = 226,
+            Rainforest = 227,
+            Swamp = 228,
+            Subtropical = 229,
+            MountainWoods = 230,
+            Woodlands = 231,
+            HauntedWoodlands = 232 // not sure where this is?
+        }
+
+        /// <summary>
+        /// Gets default climate index.
+        /// </summary>
+        public static int DefaultClimate
+        {
+            get { return 231; }
+        }
+
+        ///// <summary>
+        ///// Gets default climate settings.
+        ///// </summary>
+        //public static DFLocation.ClimateSettings DefaultClimateSettings
+        //{
+        //    get { return GetWorldClimateSettings(DefaultClimate); }
+        //}
+
+        #endregion
+
+        #region Constructors
+
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
+        public MapsFile()
+        {
+        }
+
+        /// <summary>
+        /// Load constructor.
+        /// </summary>
+        /// <param name="filePath">Absolute path to MAPS.BSA.</param>
+        /// <param name="usage">Determines if the BSA file will read from disk or memory.</param>
+        /// <param name="readOnly">File will be read-only if true, read-write if false.</param>
+        public MapsFile(string filePath, FileUsage usage, bool readOnly)
+        {
+            Load(filePath, usage, readOnly);
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Load MAPS.BSA file.
+        /// </summary>
+        /// <param name="filePath">Absolute path to MAPS.BSA file.</param>
+        /// <param name="usage">Specify if file will be accessed from disk, or loaded into RAM.</param>
+        /// <param name="readOnly">File will be read-only if true, read-write if false.</param>
+        /// <returns>True if successful, otherwise false.</returns>
+        public bool Load(string filePath, FileUsage usage, bool readOnly)
+        {
+            // Validate filename
+            if (!filePath.EndsWith("MAPS.BSA", StringComparison.InvariantCultureIgnoreCase))
+                return false;
+
+            // Load PAK files
+            string arena2Path = Path.GetDirectoryName(filePath);
+            climatePak = new PakFile(Path.Combine(arena2Path, "CLIMATE.PAK"));
+            politicPak = new PakFile(Path.Combine(arena2Path, "POLITIC.PAK"));
+
+            // Load file
+            isReady = false;
+            if (!bsaFile.Load(filePath, usage, readOnly))
+                return false;
+
+            // Create records array
+            regions = new RegionRecord[RegionCount];
+
+            // Set ready flag
+            isReady = true;
+
+            return true;
+        }
+    }
+}
+#endif

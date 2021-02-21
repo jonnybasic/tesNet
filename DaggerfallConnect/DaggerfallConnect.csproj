@@ -103,7 +103,6 @@
     <Compile Include="API\WoodsFile.cs" />
     <Compile Include="DaggerfallWorkshopProxy\DaggerfallUnity.cs" />
     <Compile Include="DaggerfallWorkshopProxy\Game.cs" />
-    <Compile Include="FullSerializerProxy\FullSerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UnityProxy\Engine.cs" />
     <Compile Include="UnityProxy\Color.cs" />
@@ -126,6 +125,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="LICENSE" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FullSerializer\FullSerializer.csproj">
+      <Project>{c917709a-d3d5-4674-86c0-d29815ea30ba}</Project>
+      <Name>FullSerializer</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

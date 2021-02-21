@@ -11,7 +11,7 @@
 
 using System;
 using System.IO;
-using DaggerfallWorkshop.Utility;
+using DaggerfallWorkshop;
 
 namespace DaggerfallConnect.Save
 {
@@ -52,7 +52,7 @@ namespace DaggerfallConnect.Save
             if (RecordData == null)
                 return;
 
-            DaggerfallSpellReader.ReadSpellData(RecordData, out parsedData);
+            DaggerfallContentReader.ReadSpellData(RecordData, out parsedData);
         }
 
         [Serializable]
