@@ -703,7 +703,7 @@ namespace DaggerfallConnect.Arena2
         /// <returns>true if faction was registered, false if the faction id is already in use</returns>
         public static bool RegisterCustomFaction(int factionId, FactionData factionData)
         {
-            DaggerfallProxy.Utility.LogMessage("RegisterCustomFaction: " + factionId, true);
+            DaggerfallUnity.LogMessage("RegisterCustomFaction: " + factionId, true);
             if (!customFactions.ContainsKey(factionId))
             {
                 customFactions.Add(factionId, factionData);

@@ -62,7 +62,7 @@ namespace DaggerfallConnect.Utility
             }
             catch (Exception ex)
             {
-                DaggerfallWorkshop.DaggerfallProxy.Utility.LogMessage(ex.Message, true);
+                DaggerfallWorkshop.DaggerfallUnity.LogMessage(ex.Message, true);
             }
             return dist;
         }

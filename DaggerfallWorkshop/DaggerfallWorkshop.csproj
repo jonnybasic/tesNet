@@ -86,7 +86,6 @@
     <Compile Include="API\FlcFile.cs" />
     <Compile Include="API\FntFile.cs" />
     <Compile Include="API\GfxFile.cs" />
-    <Compile Include="API\IContentReplacement.cs" />
     <Compile Include="API\ImgFile.cs" />
     <Compile Include="API\ItemsFile.cs" />
     <Compile Include="API\MagicItemsFile.cs" />
@@ -119,6 +118,8 @@
     <Compile Include="API\VidFile.cs" />
     <Compile Include="API\WoodsFile.cs" />
     <Compile Include="DaggerfallUnityEnums.cs" />
+    <Compile Include="DaggerfallUnityInterfaces.cs" />
+    <Compile Include="DaggerfallUnityStructs.cs" />
     <Compile Include="Game\Entities\DaggerfallSkills.cs" />
     <Compile Include="Game\Entities\DaggerfallStats.cs" />
     <Compile Include="Game\Entities\RaceTemplate.cs" />
@@ -130,6 +131,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SongFiles.cs" />
     <Compile Include="SoundClips.cs" />
+    <Compile Include="Utility\TextureReader.cs" />
+    <Compile Include="VersionInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FullSerializer\FullSerializer.csproj">
@@ -141,8 +144,6 @@
       <Name>UnityProxy</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Utility\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

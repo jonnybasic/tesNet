@@ -44,7 +44,7 @@ namespace DaggerfallWorkshop.Game.Player
         public uint skillsRaisedThisLevel2;
         public int startingLevelUpSkillSum;
         public byte minMetalToHit;
-        public sbyte[] armorValues = new sbyte[DaggerfallProxy.EntityTemplate.NumberBodyParts];
+        public sbyte[] armorValues = new sbyte[DaggerfallEntity.NumberBodyParts];
         public uint lastTimePlayerBoughtTraining;
         public uint timeForThievesGuildLetter;
         public uint timeForDarkBrotherhoodLetter;
@@ -72,7 +72,7 @@ namespace DaggerfallWorkshop.Game.Player
         {
             raceTemplate = GetRaceTemplate(Races.Breton);
             gender = Genders.Male;
-            career = DaggerfallProxy.EntityTemplate.GetClassCareerTemplate(ClassCareers.Mage);
+            career = DaggerfallEntity.GetClassCareerTemplate(ClassCareers.Mage);
             name = "Nameless";
             reflexes = PlayerReflexes.Average;
             workingSkills.SetDefaults();

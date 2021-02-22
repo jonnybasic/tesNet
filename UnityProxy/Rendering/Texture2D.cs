@@ -10,7 +10,9 @@ namespace UnityEngine
     public enum TextureFormat
     {
         ARGB32,
-        RGBA32
+        RGBA32,
+        ARGB4444,
+        RGBA4444
     }
 
     public enum RenderTextureFormat
@@ -30,12 +32,27 @@ namespace UnityEngine
 
     public class Texture : GameObject
     {
-        public void SetPixels32(Color32[] src, int offset = 0)
+        public FilterMode filterMode;
+        public TextureWrapMode wrapMode;
+        public float mipMapBias;
+        public int anisoLevel;
+
+        public void SetPixels32(Color32[] src, int offset = 0, int v = 0)
         {
             throw new NotImplementedException();
         }
 
         public void SetPixels(Color[] colors, int offset = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Color32[] GetPixels32()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Color[] GetPixels()
         {
             throw new NotImplementedException();
         }
@@ -74,15 +91,19 @@ namespace UnityEngine
 
     public class Texture2D : Texture
     {
-        public FilterMode filterMode;
         public int width;
         public int height;
 
         public Texture2D()
         { }
 
-        public Texture2D(int width, int height, TextureFormat format = TextureFormat.ARGB32, bool mips = false)
+        public Texture2D(int width, int height, TextureFormat format = TextureFormat.ARGB32, bool mipMaps = false)
         { }
+
+        public Rect[] PackTextures(Texture2D[] texture2D, int atlasPadding, int atlasMaxSize, bool mipMaps = false)
+        {
+            throw new NotImplementedException();
+        }
 
         //public static implicit operator Texture2D(Texture t)
         //    => t as Texture2D;
@@ -92,7 +113,9 @@ namespace UnityEngine
     {
         internal readonly List<Texture2D> textures = new List<Texture2D>();
 
-        public FilterMode filterMode;
+        public Texture2DArray(int width, int height, int numSlices, TextureFormat format = TextureFormat.ARGB32, bool mipMaps = false)
+        {
+        }
 
         public IEnumerator<Texture2D> GetEnumerator()
         {
@@ -107,10 +130,7 @@ namespace UnityEngine
 
     public class Texture3D : Texture
     {
-        public TextureWrapMode wrapMode;
-        public FilterMode filterMode;
-
-        public Texture3D(int width, int height, int depth, TextureFormat format = TextureFormat.ARGB32, bool mips = false)
+        public Texture3D(int width, int height, int depth, TextureFormat format = TextureFormat.ARGB32, bool mipMaps = false)
         {
         }
     }

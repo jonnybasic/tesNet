@@ -135,6 +135,9 @@ namespace UnityEngine
 
         public static readonly Color black = ColorsProxy.Black;
         public static readonly Color white = ColorsProxy.White;
+        public static readonly Color red = ColorsProxy.Red;
+        public static readonly Color green = ColorsProxy.Green;
+        public static readonly Color blue = ColorsProxy.Blue;
         public static readonly Color grey = ColorsProxy.Gray;
         public static readonly Color clear = ColorsProxy.Transparent;
 
