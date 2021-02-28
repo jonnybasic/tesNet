@@ -1,4 +1,5 @@
-﻿using DaggerfallWorkshopWpf;
+﻿using DaggerfallWorkshop;
+using DaggerfallWorkshop.Utility;
 using OptixCore.Library;
 using OptixCore.Library.Native;
 using System;
@@ -303,8 +304,8 @@ namespace wpfDagger
         private IntPtr backBufferPtr;
         private WriteableBitmap writeableBitmap;
 
-        private readonly DaggerfallWpf3D daggerUtil;
-        private readonly MeshReader daggerMeshReader;
+        private readonly DaggerfallUnity daggerfallUnity;
+        private readonly MeshReader meshReader;
 
         struct RecordGeometry
         {
@@ -359,8 +360,8 @@ namespace wpfDagger
             invalidateTimer.Tick += InvalidateTimer_Tick;
             invalidateTimer.Interval = TimeSpan.FromMilliseconds(1000.0 / 30.0);
 
-            daggerUtil = FindResource("DaggerfallWpf") as DaggerfallWpf3D;
-            daggerMeshReader = FindResource("DaggerMeshReader") as MeshReader;
+            daggerfallUnity = FindResource("DaggerfallUnity") as DaggerfallUnity;
+            meshReader = FindResource("MeshReader") as MeshReader;
         }
 
         private void InvalidateTimer_Tick(object sender, EventArgs e)
@@ -934,14 +935,16 @@ namespace wpfDagger
 
         private void SetRecordGeometry(ref RecordModel record)
         {
+#if true
             if (null != contextModel
-                && daggerMeshReader.GetModelData(record.Id, out ModelData model))
+                && meshReader.GetModelData(record.Id, out ModelData model))
             {
                 bool wasInvalidateEnabled = invalidateTimer.IsEnabled;
                 bool wasBackgroundEnabled = backgroundTimer.IsEnabled;
                 if (wasInvalidateEnabled) invalidateTimer.Stop();
                 if (wasBackgroundEnabled) backgroundTimer.Stop();
 
+                float scaledRadius = model.DFMesh.Radius * MeshReader.GlobalScale;
                 if (!recordGeometry.ContainsKey(record.Id))
                 {
                     RecordGeometry newGeometry = new RecordGeometry();
@@ -962,20 +965,26 @@ namespace wpfDagger
                     newGeometry.topGroup[0] = newGeometry.geometryGroup;
                     newGeometry.topGroup[1] = newGeometry.triangleGeometryGroup;
                     // bounding box
-                    float minX = model.Vertices.Min((v) => (float)v.X);
-                    float maxX = model.Vertices.Max((v) => (float)v.X);
-                    float minY = model.Vertices.Min((v) => (float)v.Y);
-                    float maxY = model.Vertices.Max((v) => (float)v.Y);
-                    float minZ = model.Vertices.Min((v) => (float)v.Z);
-                    float maxZ = model.Vertices.Max((v) => (float)v.Z);
+                    float minX = model.Vertices.Min((v) => (float)v.x);
+                    float maxX = model.Vertices.Max((v) => (float)v.x);
+                    float minY = model.Vertices.Min((v) => (float)v.y);
+                    float maxY = model.Vertices.Max((v) => (float)v.y);
+                    float minZ = model.Vertices.Min((v) => (float)v.z);
+                    float maxZ = model.Vertices.Max((v) => (float)v.z);
 
+                    List<uint> materialIndices = new List<uint>(model.DFMesh.TotalTriangles);
+                    for (uint smi = 0u; smi < model.SubMeshes.Length; ++smi)
+                    {
+                        // repeat the material index for each primitive
+                        materialIndices.AddRange(Enumerable.Repeat(smi, model.SubMeshes[smi].PrimitiveCount));
+                    }
                     TriangleMesh mesh = new TriangleMesh
                     {
-                        indices = model.Indices,
-                        normals = model.Normals.Select((n) => n.ToFloat3()).ToArray(),
-                        texcoords = model.Texcoords.Select((uv) => uv.ToFloat2()).ToArray(),
-                        vertices = model.Vertices.Select((v) => v.ToFloat3()).ToArray(),
-                        materials = model.Materials
+                        indices = model.Indices.Select((i) => (uint)i).ToArray(),
+                        normals = model.Normals.Select((n) => new float3(n.x, n.y, n.z)).ToArray(),
+                        texcoords = model.UVs.Select((uv) => new float2(uv.x, uv.y)).ToArray(),
+                        vertices = model.Vertices.Select((v) => new float3(v.x, v.y, v.z)).ToArray(),
+                        materials = materialIndices.ToArray()
                     };
                     GeometryTriangles triangles = CreateGeometryTriangles(ref mesh);
                     GeometryInstance trianglesInstance = contextModel.CreateGeometryInstance(
@@ -1000,12 +1009,15 @@ namespace wpfDagger
                         }
                         else
                         {
-                            byte[] textureImage = daggerUtil.MaterialReader.TextureReader.GetTextureBytes(
+                            //DaggerfallConnect.Utility.DFSize sz;
+                            var textureResults = daggerfallUnity.MaterialReader.TextureReader.GetTexture2D(
                                 TextureReader.CreateTextureSettings(
                                     subMesh.TextureArchive,
-                                    subMesh.TextureRecord),
-                                out DaggerfallConnect.Utility.DFSize sz);
-                            if (sz.Width > 0 && sz.Height > 0)
+                                    subMesh.TextureRecord));
+                            var albedoTexture = textureResults.albedoMap;
+
+                            if (albedoTexture.width > 0
+                                && albedoTexture.height > 0)
                             {
                                 // new textured material
                                 Material textureMaterial = contextModel.CreateMaterial(
@@ -1017,11 +1029,20 @@ namespace wpfDagger
                                     new BufferDesc
                                     {
                                         Format = Format.UByte4,
-                                        Height = (uint)sz.Height,
-                                        Width = (uint)sz.Width,
+                                        Height = (uint)albedoTexture.height,
+                                        Width = (uint)albedoTexture.width,
                                         Type = BufferType.Input
                                     });
-                                textureBuffer.SetData(textureImage);
+                                // convert pixel data to RGBA
+                                byte[] pixels = new byte[albedoTexture.bytesBGRA.Length];
+                                for (int p = 0; p < pixels.Length; p += 4)
+                                {
+                                    pixels[p + 0] = albedoTexture.bytesBGRA[p + 2];
+                                    pixels[p + 1] = albedoTexture.bytesBGRA[p + 1];
+                                    pixels[p + 2] = albedoTexture.bytesBGRA[p + 0];
+                                    pixels[p + 3] = albedoTexture.bytesBGRA[p + 3];
+                                }
+                                textureBuffer.SetData(pixels);
                                 // texture sampler
                                 TextureSamplerDesc desc = TextureSamplerDesc.Default;
                                 desc.Filter.Mag = FilterMode.Nearest;
@@ -1051,7 +1072,7 @@ namespace wpfDagger
 
                     newGeometry.triangleGeometryGroup.AddChild(trianglesInstance);
 
-                    const float cornerSize = 16.0f;
+                    const float cornerSize = 32.0f * MeshReader.GlobalScale;
                     // define a regular tetrahedron, translated min,min,min
                     TriangleMesh cornerMesh = CreateTetrahedron(cornerSize, new float3(minX, minY, minZ));
                     GeometryTriangles corner000 = CreateGeometryTriangles(ref cornerMesh);
@@ -1106,9 +1127,9 @@ namespace wpfDagger
                     });
 
                     contextModel.LogMessages.Add("Create parallelogram geometry");
-                    float3 anchor = new float3(-model.DFMesh.Radius, minY, -model.DFMesh.Radius);
-                    float3 v1 = new float3(model.DFMesh.Radius * 2.0f, 0.0f, 0.0f);
-                    float3 v2 = new float3(0.0f, 0.0f, model.DFMesh.Radius * 2.0f);
+                    float3 anchor = new float3(-scaledRadius, minY, -scaledRadius);
+                    float3 v1 = new float3(scaledRadius * 2.0f, 0.0f, 0.0f);
+                    float3 v2 = new float3(0.0f, 0.0f, scaledRadius * 2.0f);
                     float3 normal = float3.Normalize(float3.Cross(v1, v2));
                     float d = float3.Dot(normal, anchor);
                     v1 *= 1.0f / float3.Dot(v1, v1);
@@ -1129,8 +1150,8 @@ namespace wpfDagger
                     newGeometry.geometryGroup.AddChild(parallelogramInstance);
 
                     // update camera
-                    cameraEye = new float3(model.DFMesh.Radius * -0.9f, maxY + (model.DFMesh.Radius * 0.125f), model.DFMesh.Radius * -1.25f);
-                    cameraLookAt = new float3(0.0f, minY + (model.DFMesh.Radius * 0.125f), 0.0f);
+                    cameraEye = new float3(scaledRadius * -0.9f, maxY + (scaledRadius * 0.125f), scaledRadius * -1.25f);
+                    cameraLookAt = new float3(0.0f, minY + (scaledRadius * 0.125f), 0.0f);
 
                     // store new record geometry
                     recordGeometry[record.Id] = newGeometry;
@@ -1153,11 +1174,11 @@ namespace wpfDagger
                 }
                 else
                 {
-                    float minY = model.Vertices.Min((v) => (float)v.Y);
-                    float maxY = model.Vertices.Max((v) => (float)v.Y);
+                    float minY = model.Vertices.Min((v) => (float)v.y);
+                    float maxY = model.Vertices.Max((v) => (float)v.y);
                     // update camera
-                    cameraEye = new float3(model.DFMesh.Radius * -0.9f, maxY + (model.DFMesh.Radius * 0.125f), model.DFMesh.Radius * -1.25f);
-                    cameraLookAt = new float3(0.0f, minY + (model.DFMesh.Radius * 0.125f), 0.0f);
+                    cameraEye = new float3(scaledRadius * -0.9f, maxY + (scaledRadius * 0.125f), scaledRadius * -1.25f);
+                    cameraLookAt = new float3(0.0f, minY + (scaledRadius * 0.125f), 0.0f);
 
                     // change top object children
                     recordGeometry[record.Id].topAccel.MarkAsDirty();
@@ -1176,6 +1197,7 @@ namespace wpfDagger
                 if (wasInvalidateEnabled) invalidateTimer.Start();
                 if (wasBackgroundEnabled) backgroundTimer.Start();
             }
+#endif
         }
 
         private GeometryTriangles CreateGeometryTriangles(ref TriangleMesh mesh)

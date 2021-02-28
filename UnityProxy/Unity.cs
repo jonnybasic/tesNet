@@ -16,42 +16,19 @@ namespace Unity.Collections
     { }
 }
 
-namespace Unity.Jobs
-{
-    public interface IJob
-    { }
-
-
-    public interface IJobParallelFor
-    { }
-
-    public class JobHandle
-    { }
-
-    public static class JobExtensions
-    {
-        public static JobHandle Schedule(this IJob job, JobHandle dependency)
-        {
-            throw new NotImplementedException();
-        }
-
-        public static JobHandle Schedule(this IJobParallelFor job, int size, int batch, JobHandle dependency)
-        {
-            throw new NotImplementedException();
-        }
-    }
-}
-
 namespace UnityEngine
 {
     using Color32Proxy = System.Drawing.Color;
     using ColorProxy = System.Windows.Media.Color;
     using ColorsProxy = System.Windows.Media.Colors;
     using Vector3Proxy = System.Windows.Media.Media3D.Vector3D;
+    using Point3DProxy = System.Windows.Media.Media3D.Point3D;
     using Vector4Proxy = System.Windows.Media.Media3D.Point4D;
     using Vector2Proxy = System.Windows.Vector;
+    using Point2DProxy = System.Windows.Point;
     using QuaternionProxy = System.Windows.Media.Media3D.Quaternion;
     using Matrix4x4Proxy = System.Windows.Media.Media3D.Matrix3D;
+    using System.Windows.Media;
 
     public struct Color32
     {
@@ -75,7 +52,7 @@ namespace UnityEngine
             => new Color32(c.R, c.G, c.B, c.A);
 
         public static implicit operator Color32(Color c)
-            => new Color32(c.color.R, c.color.G, c.color.B, c.color.A);
+            => new Color32(c.proxy.R, c.proxy.G, c.proxy.B, c.proxy.A);
 
         public static implicit operator Color32Proxy(Color32 c)
             => Color32Proxy.FromArgb(c.a, c.r, c.g, c.b);
@@ -91,47 +68,47 @@ namespace UnityEngine
 
     public struct Color
     {
-        internal ColorProxy color;
+        internal ColorProxy proxy;
 
         public float a
         {
-            get => color.ScA;
-            set => color.ScA = value;
+            get => proxy.ScA;
+            set => proxy.ScA = value;
         }
         public float r
         {
-            get => color.ScR;
-            set => color.ScR = value;
+            get => proxy.ScR;
+            set => proxy.ScR = value;
         }
         public float g
         {
-            get => color.ScG;
-            set => color.ScG = value;
+            get => proxy.ScG;
+            set => proxy.ScG = value;
         }
         public float b
         {
-            get => color.ScB;
-            set => color.ScB = value;
+            get => proxy.ScB;
+            set => proxy.ScB = value;
         }
 
         private Color(ColorProxy c)
         {
-            color = c;
+            proxy = c;
         }
 
         public Color(float r, float g, float b, float a = 1)
         {
-            color = ColorProxy.FromScRgb(a, r, g, b);
+            proxy = ColorProxy.FromScRgb(a, r, g, b);
         }
 
         public static implicit operator Color(ColorProxy c)
             => new Color(c);
 
         public static implicit operator ColorProxy(Color c)
-            => c.color;
+            => c.proxy;
 
         public static Color operator *(Color c, float s)
-            => new Color(c * s);
+            => new Color(c.proxy * s);
 
         public static readonly Color black = ColorsProxy.Black;
         public static readonly Color white = ColorsProxy.White;
@@ -142,10 +119,10 @@ namespace UnityEngine
         public static readonly Color clear = ColorsProxy.Transparent;
 
         public static bool operator ==(Color c1, Color c2)
-            => c1.color == c2.color;
+            => c1.proxy == c2.proxy;
 
         public static bool operator !=(Color c1, Color c2)
-            => c1.color != c2.color;
+            => c1.proxy != c2.proxy;
 
         public static Color32 Lerp(Color white, Color grey, float value)
         {
@@ -195,38 +172,42 @@ namespace UnityEngine
 
     public struct Vector2
     {
-        internal Vector2Proxy point;
+        public float x;
+        public float y;
 
-        public float magnitude
-        { get; private set; }
-
-        public float x
+        internal Vector2Proxy Proxy
         {
-            get => (float)point.X;
-            set => point.X = value;
+            get => new Vector2(x, y);
+            set
+            {
+                x = (float)value.X;
+                y = (float)value.Y;
+            }
         }
 
-        public float y
+        public float magnitude
         {
-            get => (float)point.Y;
-            set => point.Y = value;
+            get
+            {
+                return (float)Proxy.Length;
+            }
         }
 
         internal Vector2(Vector2Proxy p)
         {
-            point = p;
-            magnitude = (float)point.Length;
+            x = (float)p.X;
+            y = (float)p.Y;
         }
 
         public Vector2(float x, float y)
         {
-            point = new Vector2Proxy(x, y);
-            magnitude = (float)point.Length;
+            this.x = x;
+            this.y = y;
         }
 
         public static float Distance(Vector2 a, Vector2 b)
         {
-            var v = b.point - a.point;
+            var v = b.Proxy - a.Proxy;
             return (float)v.Length;
         }
 
@@ -234,39 +215,46 @@ namespace UnityEngine
         {
             if (obj is Vector2 other)
             {
-                return point == other.point;
+                return x == other.x
+                    && y == other.y;
             }
             return false;
         }
 
         public override int GetHashCode()
         {
-            return point.GetHashCode();
+            return Proxy.GetHashCode();
         }
 
         public static implicit operator Vector2(Vector2Proxy p)
             => new Vector2(p);
 
         public static implicit operator Vector2Proxy(Vector2 v)
-            => v.point;
+            => v.Proxy;
+
+        public static implicit operator Point2DProxy(Vector2 v)
+            => new Point2DProxy(v.x, v.y);
 
         public static implicit operator Vector2(Vector3 v)
             => new Vector2(v.x, v.y);
 
         public static Vector2 operator *(Vector2 v, float s)
-            => new Vector2(v * s);
+            => (v.Proxy * s);
 
         public static Vector2 operator +(Vector2 v1, Vector2 v2)
-            => new Vector2(v1.point + v2.point);
+            => (v1.Proxy + v2.Proxy);
 
         public static Vector2 operator -(Vector2 v1, Vector2 v2)
-            => new Vector2(v1.point - v2.point);
+            => (v1.Proxy - v2.Proxy);
+
+        public static Vector2 operator *(Vector2 v1, Vector2 v2)
+            => new Vector2(v1.x * v2.x, v1.y * v2.y);
 
         public static bool operator ==(Vector2 v1, Vector2 v2)
-            => (v1.point == v2.point);
+            => (v1.x == v2.x && v1.y == v2.y);
 
         public static bool operator !=(Vector2 v1, Vector2 v2)
-            => (v1.point != v2.point);
+            => (v1.x != v2.x || v1.y != v2.y);
 
         public static readonly Vector2 zero = new Vector2Proxy(0.0, 0.0);
         public static readonly Vector2 one = new Vector2Proxy(1.0, 1.0);
@@ -274,34 +262,34 @@ namespace UnityEngine
 
     public struct Vector3
     {
-        internal Vector3Proxy vector;
+        internal Vector3Proxy proxy;
 
         public float x
         {
-            get => (float)vector.X;
-            set => vector.X = value;
+            get => (float)proxy.X;
+            set => proxy.X = value;
         }
 
         public float y
         {
-            get => (float)vector.Y;
-            set => vector.Y = value;
+            get => (float)proxy.Y;
+            set => proxy.Y = value;
         }
 
         public float z
         {
-            get => (float)vector.Z;
-            set => vector.Z = value;
+            get => (float)proxy.Z;
+            set => proxy.Z = value;
         }
 
         internal Vector3(Vector3Proxy v)
         {
-            vector = v;
+            proxy = v;
         }
 
         public Vector3(float x, float y, float z)
         {
-            vector = new Vector3Proxy(x, y, z);
+            proxy = new Vector3Proxy(x, y, z);
         }
 
         public Vector3 normalized { get => throw new NotImplementedException(); }
@@ -310,7 +298,7 @@ namespace UnityEngine
 
         public static float Distance(Vector3 a, Vector3 b)
         {
-            var v = b.vector - a.vector;
+            var v = b.proxy - a.proxy;
             return (float)v.Length;
         }
 
@@ -321,7 +309,7 @@ namespace UnityEngine
 
         public static Vector3 Cross(Vector3 a, Vector3 b)
         {
-            return Vector3Proxy.CrossProduct(a.vector, b.vector);
+            return Vector3Proxy.CrossProduct(a.proxy, b.proxy);
         }
 
         public static void OrthoNormalize(ref Vector3 n, ref Vector3 t)
@@ -332,13 +320,13 @@ namespace UnityEngine
         public static Vector3 Normalize(Vector3 v)
         {
             Vector3 result = new Vector3(v);
-            result.vector.Normalize();
+            result.proxy.Normalize();
             return result;
         }
 
         public void Normalize()
         {
-            vector.Normalize();
+            proxy.Normalize();
         }
 
         public static Vector3 Lerp(Vector3 smoothFollowerPrevWorldPos, Vector3 position, float v)
@@ -355,39 +343,42 @@ namespace UnityEngine
         {
             if (obj is Vector3 other)
             {
-                return vector == other.vector;
+                return proxy == other.proxy;
             }
             return false;
         }
 
         public override int GetHashCode()
         {
-            return vector.GetHashCode();
+            return proxy.GetHashCode();
         }
 
         public static implicit operator Vector3(Vector3Proxy v)
             => new Vector3(v);
 
         public static implicit operator Vector3Proxy(Vector3 v)
-            => v.vector;
+            => v.proxy;
+
+        public static implicit operator Point3DProxy(Vector3 v)
+            => new Point3DProxy(v.proxy.X, v.proxy.Y, v.proxy.Z);
 
         public static Vector3 operator +(Vector3 v1, Vector3 v2)
-            => new Vector3(v1 + v2);
+            => new Vector3(v1.proxy + v2.proxy);
 
         public static Vector3 operator -(Vector3 v1, Vector3 v2)
-            => new Vector3(v1 - v2);
+            => new Vector3(v1.proxy - v2.proxy);
 
         public static Vector3 operator *(Vector3 v, float d)
-            => new Vector3(v * d);
+            => new Vector3(v.proxy * d);
 
         public static Vector3 operator /(Vector3 v, float d)
-            => new Vector3(v / d);
+            => new Vector3(v.proxy / d);
 
         public static bool operator ==(Vector3 v1, Vector3 v2)
-            => (v1.vector == v2.vector);
+            => (v1.proxy == v2.proxy);
 
         public static bool operator !=(Vector3 v1, Vector3 v2)
-            => (v1.vector != v2.vector);
+            => (v1.proxy != v2.proxy);
 
         public static implicit operator Vector3(Vector2 v)
         {

@@ -50,6 +50,7 @@ namespace UnityEngine
     public class Shader : Object
     {
         internal static int lastPropertyId = 0;
+        internal static readonly Dictionary<string, Shader> shaderCache = new Dictionary<string, Shader>();
         internal static readonly Dictionary<string, int> propertyIdMap = new Dictionary<string, int>();
 
         public static int PropertyToID(string property)
@@ -63,17 +64,23 @@ namespace UnityEngine
 
         public static Shader Find(string name)
         {
-            throw new NotImplementedException();
+            System.Diagnostics.Debug.Print("Find({0}) - NotImplemented", name);
+            if (!shaderCache.ContainsKey(name))
+            {
+                shaderCache[name] = new Shader();
+                shaderCache[name].name = name;
+            }
+            return shaderCache[name];
         }
 
-        public static void DisableKeyword(string v)
+        public static void DisableKeyword(string parameter)
         {
-            throw new NotImplementedException();
+            System.Diagnostics.Debug.Print("DisableKeyword({0}) - NotImplemented", parameter);
         }
 
-        public static void EnableKeyword(string v)
+        public static void EnableKeyword(string parameter)
         {
-            throw new NotImplementedException();
+            System.Diagnostics.Debug.Print("EnableKeyword({0}) - NotImplemented", parameter);
         }
     }
 

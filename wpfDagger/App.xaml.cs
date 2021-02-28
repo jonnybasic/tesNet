@@ -1,4 +1,5 @@
-﻿using DaggerfallWorkshopWpf;
+﻿using DaggerfallWorkshop;
+using DaggerfallWorkshop.Utility;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -17,8 +18,16 @@ namespace wpfDagger
     {
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            DaggerfallWpf3D dagger = FindResource("DaggerfallWpf") as DaggerfallWpf3D;
-            dagger.Arena2Path = Settings.Default.Arena2Path;
+            // Unity Globals
+            UnityEngine.Application.persistentDataPath = System.IO.Directory.GetCurrentDirectory();
+            // Daggerfall Unity
+            DaggerfallUnity.Settings = new SettingsManager();
+            // setup a unity instance
+            DaggerfallUnity.Instance = FindResource("DaggerfallUnity") as DaggerfallUnity;
+            // setup a utility instance
+            DaggerfallUnity.Instance.Arena2Path = Settings.Default.Arena2Path;
+            DaggerfallUnity.Instance.TextProvider = new DefaultTextProvider();
+            DaggerfallUnity.Instance.MaterialReader = new MaterialReader();
         }
 
         private void Application_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)

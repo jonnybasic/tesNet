@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
@@ -8,16 +9,94 @@ using UnityEngine.Localization.Tables;
 using Unity.Jobs;
 using System.Threading;
 
+namespace UnityEngine
+{
+    public static class Parser
+    {
+        public static int ParseInt(string value)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+}
+
 namespace UnityEngine.Localization
 {
+
     public class Locale
     {
-        public string name;
+        internal CultureInfo cultureInfo;
+
+        public string name
+        { get => cultureInfo.Name; }
+
+        internal Locale(CultureInfo ci)
+        {
+            cultureInfo = ci;
+        }
+
+        public static implicit operator Locale(CultureInfo ci)
+            => new Locale(ci);
     }
 
     public class LocalizedString
     {
+        internal StringInfo stringInfo;
+
+        internal LocalizedString(StringInfo si)
+        {
+            stringInfo = si;
+        }
+
+        public static implicit operator LocalizedString(StringInfo si)
+            => new LocalizedString(si);
+
         public string GetLocalizedString()
+        {
+            return stringInfo.String;
+        }
+    }
+}
+
+namespace UnityEngine.Localization.Tables
+{
+    public class Table
+    {
+        private readonly Dictionary<String, int> columns = new Dictionary<string, int>();
+        private readonly List<String> tableRows;
+
+        public readonly int RowCount;
+
+        public Table(string[] rows)
+        {
+            throw new NotImplementedException();
+            // first row is header?
+            if (rows.Length > 0)
+            {
+                var headers = rows[0].Split(' ');
+                for (int i = 0; i < headers.Length; ++i)
+                {
+                    columns[headers[i]] = i;
+                }
+            }
+            if (rows.Length > 1)
+            {
+                tableRows = new List<string>(rows.Skip(1));
+            }
+        }
+
+        public string[] GetRow(int i)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool HasValue(string key)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetValue(string textColumn, string key)
         {
             throw new NotImplementedException();
         }
@@ -31,33 +110,21 @@ namespace UnityEngine.Localization.Settings
         public static StringDatabase StringDatabase;
 
         public static Locale SelectedLocale;
-    }
-}
 
-namespace Unity.Jobs
-{
-    public class AsyncJob<TResult> : IJob
-    {
-        internal Task<TResult> task;
-        internal AsyncJob(Task<TResult> t)
+        public static class AvailableLocales
         {
-            task = t;
-        }
-        internal AsyncJob(Func<TResult> f)
-        {
-            task = Task.Run(f);
+            public static IList<Locale> Locales
+            {
+                get
+                {
+                    return new Locale[] { CultureInfo.CurrentCulture };
+                }
+            }
         }
 
-        public TResult Result
-        { get => task.Result; }
-
-        public bool IsDone
-        { get => task.IsCompleted; }
-
-        public Func<Task<TResult>, TResult> Completed
+        public static AsyncJob<Locale> SelectedLocaleAsync
         {
-            get => throw new NotImplementedException();
-            set => throw new NotImplementedException();
+            get => new AsyncJob<Locale>(() => CultureInfo.CurrentCulture);
         }
     }
 }

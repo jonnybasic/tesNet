@@ -6,9 +6,7 @@
         xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:wpfDagger"
-        xmlns:df="clr-namespace:DaggerfallConnect;assembly=DaggerfallConnect"
-        xmlns:dfa="clr-namespace:DaggerfallConnect.Arena2;assembly=DaggerfallConnect"
-        xmlns:dwpf="clr-namespace:DaggerfallWorkshopWpf"
+        xmlns:dw="clr-namespace:DaggerfallWorkshop;assembly=DaggerfallWorkshop"
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
@@ -132,7 +130,7 @@
                       TextElement.FontFamily="{StaticResource OblivionFontFamily}">
                 <MenuItem Header="_Load"
                           Command="ApplicationCommands.Open"
-                          CommandParameter="{StaticResource DaggerMeshReader}" />
+                          CommandParameter="{StaticResource MeshReader}" />
             </MenuItem>
         </Menu>
 
@@ -239,7 +237,7 @@
                                 </ModelVisual3D.Content>
                             </ModelVisual3D>
                             -->
-                            <ModelVisual3D Content="{Binding Model}">
+                            <ModelVisual3D Content="{Binding ., Converter={StaticResource RecordModelValueConverter}}">
                                 <ModelVisual3D.Transform>
                                     <Transform3DGroup>
                                         <RotateTransform3D>
@@ -266,10 +264,10 @@
 
                         <Slider Grid.Column="1"
                                 Orientation="Vertical"
-                                Minimum="-1024"
-                                Maximum="1024"
+                                Minimum="-512"
+                                Maximum="512"
                                 SmallChange="2"
-                                LargeChange="16"
+                                LargeChange="8"
                                 IsDirectionReversed="True"
                                 ToolTip="Model Position"
                                 Value="{Binding OffsetY, ElementName=modelTranslation}" />
@@ -293,11 +291,11 @@
                             </StackPanel.Resources>
                             <Label Content="Model Scale" />
                             <Slider x:Name="sliderScale"
-                                    SmallChange="0.0001"
-                                    LargeChange="0.01"
-                                    Minimum="0.0254"
-                                    Maximum="1.0"
-                                    Value="0.25" />
+                                    SmallChange="2.0"
+                                    LargeChange="8.0"
+                                    Minimum="1.0"
+                                    Maximum="64.0"
+                                    Value="16.0" />
                             <Label Content="Light Direction" />
                             <TextBox x:Name="textBoxLightDirection"
                                      Margin="5,0,5,5"

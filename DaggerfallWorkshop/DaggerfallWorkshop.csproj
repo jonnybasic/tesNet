@@ -126,11 +126,25 @@
     <Compile Include="Game\Enumerations.cs" />
     <Compile Include="Game\MagicAndEffects\MagicAndEffectsEnums.cs" />
     <Compile Include="Game\Player\CharacterDocument.cs" />
+    <Compile Include="Game\TextManager.cs" />
+    <Compile Include="Game\UserInterface\DaggerfallFont.cs" />
     <Compile Include="Game\UserInterface\Enumerations.cs" />
+    <Compile Include="Internal\DaggerfallGroundPlane.cs" />
+    <Compile Include="Localization\DaggerfallStringTableImporter.cs" />
     <Compile Include="Localization\LocalizationEnums.cs" />
+    <Compile Include="MaterialReader.cs" />
+    <Compile Include="MeshReader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SettingsManager.cs" />
     <Compile Include="SongFiles.cs" />
     <Compile Include="SoundClips.cs" />
+    <Compile Include="Terrain\TerrainSampler.cs" />
+    <Compile Include="Utility\ClimateSwaps.cs" />
+    <Compile Include="Utility\DaggerfallDateTime.cs" />
+    <Compile Include="Utility\DefaultTextProvider.cs" />
+    <Compile Include="Utility\ImageProcessing.cs" />
+    <Compile Include="Utility\ModelCombiner.cs" />
+    <Compile Include="Utility\TextProvider.cs" />
     <Compile Include="Utility\TextureReader.cs" />
     <Compile Include="VersionInfo.cs" />
   </ItemGroup>

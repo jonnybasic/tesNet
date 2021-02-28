@@ -66,15 +66,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="RecordModelValueConverter.cs" />
     <Compile Include="Settings.cs" />
-    <Compile Include="UnityProxy\DaggerfallWpfEnums.cs" />
-    <Compile Include="UnityProxy\DaggerfallWpfInterfaces.cs" />
-    <Compile Include="UnityProxy\DaggerfallWpfStructs.cs" />
-    <Compile Include="UnityProxy\DaggerfallWpf.cs" />
-    <Compile Include="UnityProxy\MaterialReader.cs" />
-    <Compile Include="UnityProxy\MeshReader.cs" />
-    <Compile Include="UnityProxy\SettingsManager.cs" />
-    <Compile Include="UnityProxy\TextureReader.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -188,13 +181,17 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DaggerfallConnect\DaggerfallConnect.csproj">
-      <Project>{9806ddfd-bdca-45da-86dc-0ea77c95833c}</Project>
-      <Name>DaggerfallConnect</Name>
+    <ProjectReference Include="..\DaggerfallWorkshop\DaggerfallWorkshop.csproj">
+      <Project>{a1f1d9cd-e43e-4132-b2bc-2d78d4b25074}</Project>
+      <Name>DaggerfallWorkshop</Name>
     </ProjectReference>
     <ProjectReference Include="..\OptixCore.Library\OptixCore.Library.csproj">
       <Project>{7240a527-1293-42a0-a331-c6ab1f03c1a9}</Project>
       <Name>OptixCore.Library</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\UnityProxy\UnityProxy.csproj">
+      <Project>{7e36d9de-416e-4793-906d-fcfa1f5ddcb7}</Project>
+      <Name>UnityProxy</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

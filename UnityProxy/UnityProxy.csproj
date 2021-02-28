@@ -50,6 +50,12 @@
     <Compile Include="Editor\EditorApplication.cs" />
     <Compile Include="Engine.cs" />
     <Compile Include="GameObject.cs" />
+    <Compile Include="Jobs\Jobs.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="SceneManagement\SceneManager.cs" />
     <Compile Include="UI\GUI.cs" />
     <Compile Include="3rdParty\FileIniDataParser.cs" />
@@ -63,12 +69,22 @@
     <Compile Include="Rendering\Mesh.cs" />
     <Compile Include="Rendering\Renderer.cs" />
     <Compile Include="Rendering\Shader.cs" />
-    <Compile Include="Rendering\Texture2D.cs" />
+    <Compile Include="Rendering\Textures.cs" />
     <Compile Include="Serialization\Attributes.cs" />
     <Compile Include="UI\GL.cs" />
     <Compile Include="UI\RawImage.cs" />
     <Compile Include="Unity.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\defaults.ini" />
+    <None Include="Resources\settings.ini" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

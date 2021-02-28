@@ -1,6 +1,6 @@
 ﻿using DaggerfallConnect;
 using DaggerfallConnect.Arena2;
-using DaggerfallWorkshopWpf;
+using DaggerfallWorkshop;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -18,6 +18,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using UnityEngine;
 using wpfDagger.Properties;
 
 namespace wpfDagger
@@ -57,22 +58,22 @@ namespace wpfDagger
                 if (reader.IsReady)
                 {
                     Context.Progress = 0.10f;
-                    Context.StatusMessage = String.Format("archive loaded {0} records", reader.Arch3d.Count);
-                    List<RecordModel> tempList = new List<RecordModel>(reader.Arch3d.Count);
-                    for (int i = 0; i < reader.Arch3d.Count; ++i)
-                    {
-                        uint recordId = reader.Arch3d.GetRecordId(i);
-                        tempList.Add(new RecordModel
-                        {
-                            Id = recordId,
-                            Index = i,
-                            Name = recordId.ToString(),
-                            SizeInBytes = 0
-                        });
-                    }
+                    //Context.StatusMessage = String.Format("archive loaded {0} records", reader.Arch3d.Count);
+                    //List<RecordModel> tempList = new List<RecordModel>(reader.Arch3d.Count);
+                    //for (int i = 0; i < reader.Arch3d.Count; ++i)
+                    //{
+                    //    uint recordId = reader.Arch3d.GetRecordId(i);
+                    //    tempList.Add(new RecordModel
+                    //    {
+                    //        Id = recordId,
+                    //        Index = i,
+                    //        Name = recordId.ToString(),
+                    //        SizeInBytes = 0
+                    //    });
+                    //}
                     Context.Progress = 0.25f;
-                    Context.Records = new ObservableCollection<RecordModel>(tempList);
-                    Context.NotifyPropertyChanged("Records");
+                    //Context.Records = new ObservableCollection<RecordModel>(tempList);
+                    //Context.NotifyPropertyChanged("Records");
                     Context.Progress = 1.0f;
                 }
                 else
@@ -85,7 +86,8 @@ namespace wpfDagger
 
         private void OpenCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = (e.Parameter is MeshReader reader);
+            //e.CanExecute = (e.Parameter is MeshReader reader);
+            e.CanExecute = false;
         }
 
         private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -98,35 +100,7 @@ namespace wpfDagger
             // selection mode is single
             foreach (RecordModel record in e.AddedItems)
             {
-                // check if model is ready
-                if (record.Model == null)
-                {
-                    // load this model
-                    MeshReader reader = FindResource("DaggerMeshReader") as MeshReader;
-                    if (reader.GetModelData(record.Id, out ModelData model))
-                    {
-                        // move the camera
-                        record.CameraPosition = new Point3D(
-                            -model.DFMesh.Radius,
-                            model.DFMesh.Radius * 0.25f,
-                            0.0f);
-                        record.CameraLookDirection = new Vector3D(
-                            -record.CameraPosition.X,
-                            -record.CameraPosition.Y,
-                            0.0f);
-                        record.CameraUpDirection = new Vector3D(0, 1, 0);
-                        // load model preview;
-                        record.Model = reader.GetMesh(
-                            record.Id,
-                            out record._cachedMaterials,
-                            out record._textureKeys,
-                            out record._hasAnimations);
-                        // expose the active texture list
-                        record.Textures = new ObservableCollection<ImageSource>(
-                            from src in record._cachedMaterials
-                            select src.albedoMap);
-                    }
-                }
+                // record selected
             }
         }
 
@@ -158,9 +132,11 @@ namespace wpfDagger
         private Point3D _cameraPosition;
         private ObservableCollection<ImageSource> _textures;
 
+        internal ModelData _modelData;
         internal CachedMaterial[] _cachedMaterials;
         internal int[] _textureKeys;
         internal bool _hasAnimations;
+        internal Mesh _mesh;
 
         public uint Id
         { get; set; }
@@ -223,22 +199,19 @@ namespace wpfDagger
             }
         }
 
-        public Model3D Model
+        public Model3D ModelCache
         {
             get => _model;
-            set
-            {
-                if (value != _model)
-                {
-                    _model = value;
-                    NotifyPropertyChanged("Model");
-                }
-            }
         }
 
         public RecordModel()
         {
             Textures = new ObservableCollection<ImageSource>();
+        }
+
+        public void SetModelCache(Model3D model)
+        {
+            _model = model;
         }
     }
 

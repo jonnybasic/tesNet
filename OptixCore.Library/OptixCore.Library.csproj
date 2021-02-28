@@ -128,7 +128,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\OptiX SDK 6.5.0\bin64\optix_prime.6.5.0.dll">
+    <Content Include="D:\NVIDIA Corporation\OptiX SDK 6.5.0\bin64\optix_prime.6.5.0.dll">
       <Link>optix_prime.6.5.0.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

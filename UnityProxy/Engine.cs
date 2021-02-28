@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace UnityEngine
 {
-    public static class UnityEngine
-    {   
-    }
+    //public static class UnityEngine
+    //{ }
 
     public static class Graphics
     {
@@ -177,4 +176,18 @@ namespace UnityEngine
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Struct)]
     public class SerializeFieldAttribute : Attribute
     { }
+}
+
+namespace UnityEngine.AddressableAssets
+{
+    public static class Addressables
+    {
+        public static string RuntimePath
+        {
+            get
+            {
+                return System.IO.Directory.GetCurrentDirectory();
+            }
+        }
+    }
 }

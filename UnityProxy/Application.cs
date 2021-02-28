@@ -80,9 +80,70 @@ namespace UnityEngine
 
     public static class Resources
     {
-        public static T Load<T>(string name) where T : GameObject
+        private static System.Resources.ResourceManager resourceMan;
+
+        private static global::System.Globalization.CultureInfo resourceCulture;
+
+        [global::System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)]
+        public static System.Resources.ResourceManager ResourceManager
         {
-            throw new NotImplementedException();
+            get
+            {
+                if (resourceMan is null)
+                {
+                    // use the local resource manager
+                    return Properties.Resources.ResourceManager;
+                }
+                return resourceMan;
+            }
+            set => resourceMan = value;
+        }
+
+        [global::System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)]
+        internal static System.Globalization.CultureInfo Culture
+        {
+            get
+            {
+                if (resourceCulture is null)
+                {
+                    return Properties.Resources.Culture;
+                }
+                return resourceCulture;
+            }
+            set
+            {
+                resourceCulture = value;
+            }
+        }
+
+        public static T Load<T>(string name) where T : GameObject, new()
+        {
+            var temp = Properties.Resources.settings;
+            var temp2 = Properties.Resources.ResourceManager.GetObject("settings");
+
+            T result = new T();
+            // remove file extensions
+            string validName = System.IO.Path.GetFileNameWithoutExtension(name);
+            if (result is ITextAsset text)
+            {
+                string str = ResourceManager.GetString(validName, Culture);
+                if (String.IsNullOrEmpty(str))
+                {
+                    return null;
+                }
+                text.SetText(str);
+                ((IAsset)text).SetBytes(Encoding.ASCII.GetBytes(str));
+            }
+            else if (result is IAsset asset)
+            {
+                object obj = ResourceManager.GetObject(validName, Culture);
+                if (obj is null)
+                {
+                    return null;
+                }
+                asset.SetBytes((byte[])obj);
+            }
+            return result;
         }
 
         public static object Load(string name)
@@ -96,14 +157,35 @@ namespace UnityEngine
         }
     }
 
-    public abstract class Asset : GameObject
+    internal interface IAsset
     {
-        public byte[] bytes;
+        void SetBytes(byte[] bytes);
     }
 
-    public class TextAsset : Asset
+
+    internal interface ITextAsset
+    {
+        void SetText(string text);
+    }
+
+    public abstract class Asset : GameObject, IAsset
+    {
+        public byte[] bytes;
+
+        public void SetBytes(byte[] bytes)
+        {
+            this.bytes = bytes;
+        }
+    }
+
+    public class TextAsset : Asset, ITextAsset
     {
         public string text;
+
+        public void SetText(string text)
+        {
+            this.text = text;
+        }
     }
 
     public class SystemInfo

@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityProxy", "UnityProxy\Un
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FullSerializer", "FullSerializer\FullSerializer.csproj", "{C917709A-D3D5-4674-86C0-D29815EA30BA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DaggerfallWorkshop.UnitTest", "DaggerfallWorkshop.UnitTest\DaggerfallWorkshop.UnitTest.csproj", "{F5A4417B-84C5-4F40-9079-9D899F3F4732}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,6 +83,14 @@ Global
 		{C917709A-D3D5-4674-86C0-D29815EA30BA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C917709A-D3D5-4674-86C0-D29815EA30BA}.Release|x64.ActiveCfg = Release|Any CPU
 		{C917709A-D3D5-4674-86C0-D29815EA30BA}.Release|x64.Build.0 = Release|Any CPU
+		{F5A4417B-84C5-4F40-9079-9D899F3F4732}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5A4417B-84C5-4F40-9079-9D899F3F4732}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5A4417B-84C5-4F40-9079-9D899F3F4732}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F5A4417B-84C5-4F40-9079-9D899F3F4732}.Debug|x64.Build.0 = Debug|Any CPU
+		{F5A4417B-84C5-4F40-9079-9D899F3F4732}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5A4417B-84C5-4F40-9079-9D899F3F4732}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5A4417B-84C5-4F40-9079-9D899F3F4732}.Release|x64.ActiveCfg = Release|Any CPU
+		{F5A4417B-84C5-4F40-9079-9D899F3F4732}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

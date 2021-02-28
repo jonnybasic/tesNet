@@ -13,43 +13,15 @@ using System;
 using DaggerfallConnect;
 using DaggerfallConnect.Save;
 using DaggerfallConnect.Utility;
+using DaggerfallWorkshop.Utility;
 using UnityEngine;
 
 namespace DaggerfallConnect.Utility
 {
-    public interface IClimateSwaps
-    {
-        bool IsExteriorWindow(int archive, int record);
-    }
-
-    public static partial class ClimateSwaps
-    {
-        public static IClimateSwaps Instance
-        { get; set; }
-
-        internal static bool IsExteriorWindow(int archive, int record)
-        {
-            return Instance.IsExteriorWindow(archive, record);
-        }
-    }
 }
 
 namespace DaggerfallWorkshop.Utility.AssetInjection
 {
-    public enum TextureMap
-    {
-        Albedo,
-        Normal,
-        Emission,
-        MetallicGloss,
-    }
-
-    public enum TextureImport
-    {
-        None,
-        AllLocations,
-    }
-
     public interface ITextureReplacement
     {
         bool TryImportImage(string fileName, bool makeNoLongerReadable, out Texture2D texture);
@@ -71,78 +43,58 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
             return Instance.TryImportCifRci(fileName, record, frame, makeNoLongerReadable, out texture);
         }
 
-        internal static bool TryImportTexture(int archive, int record, int frame, object normal, TextureImport textureImport, bool mips, out Texture2D texture)
+        internal static bool TryImportTexture(int archive, int record, int frame, out Texture2D texture)
+        {
+            System.Diagnostics.Debug.Print("TryImportTexture({0}, {1}, {2}) - NotImplemented", archive, record, frame);
+            texture = null;
+            return false;
+        }
+
+        internal static bool TryImportTexture(int archive, int record, int frame, TextureMap textureMap, bool mips, out Texture2D texture)
+        {
+            System.Diagnostics.Debug.Print("TryImportTexture({0}, {1}, {2}, {3}, {4}) - NotImplemented", archive, record, frame, textureMap, mips);
+            texture = null;
+            return false;
+        }
+
+        internal static bool TryImportTexture(int archive, int record, int frame, TextureMap textureMap, TextureImport textureImport, bool mips, out Texture2D texture)
+        {
+            System.Diagnostics.Debug.Print("TryImportTexture({0}, {1}, {2}, {3}, {4}, {5}) - NotImplemented", archive, record, frame, textureMap, textureImport, mips);
+            texture = null;
+            return false;
+        }
+
+        internal static bool TryImportTextureArray(int archive, int numSlices, TextureMap map, object p, out Texture2DArray textureArray)
         {
             throw new NotImplementedException();
         }
 
-        internal static bool TryImportTexture(int archive, int record, int mips, out Texture2D texture)
+        internal static bool TextureExistsAmongLooseFiles(int archive, int record, int frame, TextureMap textureMap = TextureMap.Albedo)
+        {
+            System.Diagnostics.Debug.Print("TextureExistsAmongLooseFiles({0}, {1}, {2}, {3}) - NotImplemented", archive, record, frame, textureMap);
+            return false;
+        }
+
+        internal static bool TryImportMaterial(int archive, int record, int frame, out Material material)
+        {
+            System.Diagnostics.Debug.Print("TryImportMaterial({0}, {1}, {2}) - NotImplemented", archive, record, frame);
+            material = null;
+            return false;
+        }
+
+        internal static GetTextureResults MakeResults(Material material, int archive, int record)
         {
             throw new NotImplementedException();
         }
 
-        internal static bool TryImportTextureArray(int archive, int numSlices, TextureMap albedo, object p, out Texture2DArray textureArray)
+        internal static void AssignFiltermode(Material material)
         {
             throw new NotImplementedException();
         }
 
-        internal static bool TryImportTexture(int archive, int v1, int v2, TextureMap normal, bool v3, out Texture2D normalMap)
+        internal static void CustomizeMaterial(int archive, int record, int frame, Material material)
         {
-            throw new NotImplementedException();
-        }
-    }
-
-    public interface IImageProcessing
-    { }
-
-    public static partial class ImageProcessing
-    {
-        public static IImageProcessing Instance
-        { get; set; }
-
-        internal static Color32[] Sharpen(ref Color32[] albedoColors, int width, int height)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal static void DilateColors(ref Color32[] albedoColors, DFSize sz)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal static Color32[] GetBumpMap(ref Color32[] albedoColors, int width, int height)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal static Color32[] ConvertBumpToNormals(ref Color32[] normalColors, int width, int height, float normalStrength)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal static void ClampBorder(ref Color32[] albedo, DFSize sz, int borderSize = 0, bool mips = false, bool v2 = false)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal static void WrapBorder(ref Color32[] albedo, DFSize sz, int borderSize = 0, bool mips = false)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal static Color32[] RotateColors(ref Color32[] albedo, int width, int height)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal static Color32[] FlipColors(ref Color32[] albedo, int width, int height)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal static void InsertColors(ref Color32[] albedo, ref Color32[] atlasColors, int x, int y, int width, int height, int atlasDim1, int atlasDim2)
-        {
-            throw new NotImplementedException();
+            System.Diagnostics.Debug.Print("CustomizeMaterial({0}, {1}, {2}, {3}) - NotImplemented", archive, record, frame, material);
         }
     }
 
@@ -201,11 +153,6 @@ namespace DaggerfallWorkshop
     public interface IMapSamplesResource
     { }
 
-    public interface ITextLocalization
-    {
-        string GetLocalizedText(string text);
-    }
-
     public interface IUtilitySettings
     {
         int RetroRenderingMode
@@ -213,20 +160,7 @@ namespace DaggerfallWorkshop
 
         bool UseMipMapsInRetroMode
         { get; }
-    }
-
-    public interface IMaterialReader
-    {
-        bool ReadableTextures
-        { get; }
-    }
-
-    public interface IDaggerfallUnity
-    {
-        IMaterialReader MaterialReader
-        { get; }
-
-        void LogMessage(string message, bool exception = false);
+        bool SDFFontRendering { get; set; }
     }
 
     public interface IContentReader
@@ -235,12 +169,6 @@ namespace DaggerfallWorkshop
     public interface ISpellReader : IContentReader
     {
         void ReadData(byte[] data, out SpellRecord.SpellRecordData parsedData);
-    }
-
-    public static partial class TextManager
-    {
-        public static ITextLocalization Instance
-        { get; set; }
     }
 
     public static partial class DaggerfallContentReader
@@ -254,29 +182,82 @@ namespace DaggerfallWorkshop
         }
     }
 
-    public partial class MaterialReader
-    { }
-
-    public partial class DaggerfallUnity : IDaggerfallUnity
+#if true
+    public partial class DaggerfallUnity
     {
-        public static IDaggerfallUnity Instance
+        public static DaggerfallUnity Instance
         { get; set; }
 
-        public static IUtilitySettings Settings
+        public static SettingsManager Settings
         { get; set; }
 
-        public IMaterialReader MaterialReader
+        public MaterialReader MaterialReader
         { get; set; }
 
-        void IDaggerfallUnity.LogMessage(string message, bool exception)
+        public ITextProvider TextProvider
+        { get; set; }
+
+        public string Arena2Path
+        { get; set; }
+
+        public bool IsReady
         {
-            throw new NotImplementedException();
+            get => !String.IsNullOrEmpty(Arena2Path)
+                && System.IO.Directory.Exists(Arena2Path);
         }
 
-        internal static void LogMessage(string message, bool exception = false)
+        public static void LogMessage(string message, bool exception = false)
         {
-            Instance.LogMessage(message, exception);
+            if (exception) Debug.LogError(message);
+            else Debug.Log(message);
         }
+    }
+#endif
+}
+
+namespace DaggerfallWorkshop.Game
+{
+    public partial class DaggerfallUI
+    {
+        public static DaggerfallUI Instance
+        { get; set; }
+
+        public Material PixelFontMaterial
+        { get; set; }
+        public Material SDFFontMaterial
+        { get; set; }
+
+        public string FontsFolder
+        {
+            get { return System.IO.Path.Combine(Application.streamingAssetsPath, fontsFolderName); }
+        }
+
+        const string fontsFolderName = "Fonts";
+        const string parchmentBorderRCIFile = "SPOP.RCI";
+        const string splashVideo = "ANIM0001.VID";
+        const string deathVideo = "ANIM0012.VID";
+
+        public static Color DaggerfallDefaultTextColor = new Color32(243, 239, 44, 255);
+        public static Color DaggerfallDefaultInputTextColor = new Color32(227, 223, 0, 255);
+        public static Color DaggerfallHighlightTextColor = new Color32(219, 130, 40, 255);
+        public static Color DaggerfallAlternateHighlightTextColor = new Color32(255, 130, 40, 255);
+        public static Color DaggerfallQuestionTextColor = new Color(0.698f, 0.812f, 1.0f);
+        public static Color DaggerfallAnswerTextColor = DaggerfallDefaultInputTextColor;
+        public static Color DaggerfallDefaultShadowColor = new Color32(93, 77, 12, 255);
+        public static Color DaggerfallAlternateShadowColor1 = new Color32(44, 60, 60, 255);
+        public static Color DaggerfallDefaultSelectedTextColor = new Color32(162, 36, 12, 255);
+        public static Color DaggerfallBrighterSelectedTextColor = new Color32(254, 56, 18, 255);
+        public static Color DaggerfallForcedEnchantmentTextColor = new Color32(186, 207, 125, 255);
+        public static Color DaggerfallUnityStatDrainedTextColor = new Color32(190, 85, 24, 255);
+        public static Color DaggerfallUnityStatIncreasedTextColor = new Color32(178, 207, 255, 255);
+        public static Color DaggerfallDefaultTextCursorColor = new Color32(154, 134, 0, 200);
+        public static Color DaggerfallUnityDefaultToolTipBackgroundColor = new Color32(64, 64, 64, 210);
+        public static Color DaggerfallUnityDefaultToolTipTextColor = new Color32(230, 230, 200, 255);
+        public static Color DaggerfallUnityDefaultCheckboxToggleColor = new Color32(146, 12, 4, 255);
+        public static Color DaggerfallUnityNotImplementedColor = new Color(1, 0, 0, 0.5f);
+        public static Color DaggerfallPrisonDaysUntilFreedomColor = new Color32(232, 196, 76, 255);
+        public static Color DaggerfallPrisonDaysUntilFreedomShadowColor = new Color32(48, 36, 20, 255);
+        public static Vector2 DaggerfallDefaultShadowPos = Vector2.one;
     }
 }
 
