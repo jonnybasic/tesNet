@@ -1,7 +1,7 @@
 The Elder Scrolls .NET
 ======================
 WPF/RT Viewer of the Daggerfall Models _(only one model ATM)_
-
+![Screenshot](ScreenShot.png)
 ### Requirements
 - Visual Studio 2019 [Community](https://visualstudio.microsoft.com/vs/community)
 - Full [Daggerfall Game from Bethesda](https://elderscrolls.bethesda.net/en/daggerfall)
