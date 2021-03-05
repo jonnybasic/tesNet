@@ -31,11 +31,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AudioSynthesis">
-      <HintPath>B:\interkarma-daggerfall-unity\daggerfall-unity-master\Assets\Resources\AudioSynthesis.dll</HintPath>
+    <Reference Include="AudioSynthesis, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Libraries\AudioSynthesis.dll</HintPath>
     </Reference>
-    <Reference Include="INIFileParser">
-      <HintPath>B:\interkarma-daggerfall-unity\daggerfall-unity-master\Assets\Resources\INIFileParser.dll</HintPath>
+    <Reference Include="INIFileParser, Version=2.2.2.0, Culture=neutral, PublicKeyToken=79af7b307b65cf3c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Libraries\INIFileParser.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

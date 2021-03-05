@@ -17,8 +17,9 @@
 
         <!-- Daggerfall Mesh Reader -->
         <dw:DaggerfallUnity x:Key="DaggerfallUnity" />
-        <dw:MeshReader x:Key="MeshReader" >
-            <!--
+        <dw:MaterialReader x:Key="MaterialReader" />
+        <dw:MeshReader x:Key="MeshReader" />
+        <!--
             <dw:MeshReader.BackMaterial>
                 <DiffuseMaterial>
                     <DiffuseMaterial.Brush>
@@ -36,11 +37,9 @@
                     </DiffuseMaterial.Brush>
                 </DiffuseMaterial>
             </dw:MeshReader.BackMaterial>
-            -->
-        </dw:MeshReader>
+        -->
         <local:RecordModelValueConverter x:Key="RecordModelValueConverter"
-                                         DaggerfallUnity="{StaticResource DaggerfallUnity}"
-                                         MeshReader="{StaticResource MeshReader}" />
+                                         DaggerfallUnity="{StaticResource DaggerfallUnity}" />
 
         <!-- Main Optix Context -->
         <local:OptixContextModel x:Key="OptixContext" />

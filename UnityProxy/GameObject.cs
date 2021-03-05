@@ -43,6 +43,8 @@ namespace UnityEngine
 
     public class GameObject : Object
     {
+        static readonly Dictionary<Type, Func<object>> getComponentOfType = new Dictionary<Type, Func<object>>();
+
         public bool enabled;
 
         public Transform transform;
@@ -59,6 +61,12 @@ namespace UnityEngine
 
         public GameObject(string name)
         { }
+
+        public static void AddComponentFunc<T>(Func<object> getComponent)
+        {
+            // add/replace function
+            getComponentOfType[typeof(T)] = getComponent;
+        }
 
         public bool CompareTag(string other)
         {
@@ -82,6 +90,11 @@ namespace UnityEngine
 
         public T GetComponent<T>() where T : class
         {
+            Type t = typeof(T);
+            if (getComponentOfType.ContainsKey(t))
+            {
+                return getComponentOfType[t].Invoke() as T;
+            }
             throw new NotImplementedException();
         }
 
@@ -89,11 +102,6 @@ namespace UnityEngine
         {
             throw new NotImplementedException();
         }
-
-        //static T[] FindObjectsOfType<T>() where T : class
-        //{
-        //    throw new NotImplementedException();
-        //}
 
         public T[] GetComponents<T>() where T : class
         {
@@ -107,6 +115,11 @@ namespace UnityEngine
 
         public static T FindObjectOfType<T>() where T : class
         {
+            Type t = typeof(T);
+            if (getComponentOfType.ContainsKey(t))
+            {
+                return getComponentOfType[t].Invoke() as T;
+            }
             throw new NotImplementedException();
         }
 

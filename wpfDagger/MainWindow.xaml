@@ -394,7 +394,8 @@
                              Height="16"
                              Value="{Binding Path=Progress}"
                              Minimum="0"
-                             Maximum="1" />
+                             Maximum="1"
+                             Visibility="Hidden" />
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
                 <TextBlock Text="{Binding Path=StatusMessage}" />

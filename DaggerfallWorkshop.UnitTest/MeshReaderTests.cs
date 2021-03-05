@@ -20,13 +20,19 @@ namespace DaggerfallWorkshop.Tests
         {
             // setup a unity instance
             UnityEngine.Application.persistentDataPath = UserPath;
-            //UnityEngine.Resources.ResourceManager = 
-            // setup a utility instance
-            DaggerfallUnity.Settings = new SettingsManager();
-            DaggerfallUnity.Instance = new DaggerfallUnity();
-            DaggerfallUnity.Instance.Arena2Path = Arena2Path;
-            DaggerfallUnity.Instance.TextProvider = new Utility.DefaultTextProvider();
-            DaggerfallUnity.Instance.MaterialReader = new MaterialReader();
+            // Inject the Unity GetComponent function
+            UnityEngine.GameObject.AddComponentFunc<DaggerfallUnity>(
+                () => 
+                {
+                    return new DaggerfallUnity
+                    {
+                        Arena2Path = Arena2Path
+                    };
+                });
+            UnityEngine.GameObject.AddComponentFunc<MeshReader>(
+                () => new MeshReader());
+            UnityEngine.GameObject.AddComponentFunc<MaterialReader>(
+                () => new MaterialReader());
         }
 
         [TestMethod()]
@@ -34,7 +40,7 @@ namespace DaggerfallWorkshop.Tests
         {
             // sample building
             uint recordId = 0;
-            MeshReader instance = new MeshReader();
+            MeshReader instance = DaggerfallUnity.Instance.MeshReader;
 
             Assert.IsTrue(instance.GetModelData(recordId, out ModelData data));
             Assert.IsNotNull(data);
@@ -52,7 +58,7 @@ namespace DaggerfallWorkshop.Tests
         {
             // sample building
             uint recordId = 0;
-            MeshReader instance = new MeshReader();
+            MeshReader instance = DaggerfallUnity.Instance.MeshReader;
 
             Assert.IsTrue(instance.GetModelData(recordId, out ModelData data));
             Assert.IsNotNull(data);

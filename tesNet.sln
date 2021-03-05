@@ -1,11 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.1321
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31019.35
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "wpfDagger", "wpfDagger\wpfDagger.csproj", "{90BEF874-05C7-4A3D-A864-E9ACB6C9ABD9}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DaggerfallConnect", "DaggerfallConnect\DaggerfallConnect.csproj", "{9806DDFD-BDCA-45DA-86DC-0EA77C95833C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OptixCore.Library", "OptixCore.Library\OptixCore.Library.csproj", "{7240A527-1293-42A0-A331-C6AB1F03C1A9}"
 EndProject
@@ -35,14 +33,6 @@ Global
 		{90BEF874-05C7-4A3D-A864-E9ACB6C9ABD9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{90BEF874-05C7-4A3D-A864-E9ACB6C9ABD9}.Release|x64.ActiveCfg = Release|Any CPU
 		{90BEF874-05C7-4A3D-A864-E9ACB6C9ABD9}.Release|x64.Build.0 = Release|Any CPU
-		{9806DDFD-BDCA-45DA-86DC-0EA77C95833C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9806DDFD-BDCA-45DA-86DC-0EA77C95833C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9806DDFD-BDCA-45DA-86DC-0EA77C95833C}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{9806DDFD-BDCA-45DA-86DC-0EA77C95833C}.Debug|x64.Build.0 = Debug|Any CPU
-		{9806DDFD-BDCA-45DA-86DC-0EA77C95833C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9806DDFD-BDCA-45DA-86DC-0EA77C95833C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9806DDFD-BDCA-45DA-86DC-0EA77C95833C}.Release|x64.ActiveCfg = Release|Any CPU
-		{9806DDFD-BDCA-45DA-86DC-0EA77C95833C}.Release|x64.Build.0 = Release|Any CPU
 		{7240A527-1293-42A0-A331-C6AB1F03C1A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7240A527-1293-42A0-A331-C6AB1F03C1A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7240A527-1293-42A0-A331-C6AB1F03C1A9}.Debug|x64.ActiveCfg = Debug|Any CPU

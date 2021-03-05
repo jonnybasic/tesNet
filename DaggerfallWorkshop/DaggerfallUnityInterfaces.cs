@@ -183,22 +183,33 @@ namespace DaggerfallWorkshop
     }
 
 #if true
-    public partial class DaggerfallUnity
+    public partial class DaggerfallUnity : MonoBehaviour
     {
-        public static DaggerfallUnity Instance
-        { get; set; }
+        static DaggerfallUnity instance;
+        static SettingsManager settingsManager;
 
-        public static SettingsManager Settings
-        { get; set; }
+        ITextProvider textProvider = new DefaultTextProvider();
 
-        public MaterialReader MaterialReader
-        { get; set; }
+        MaterialReader materialReader;
+        MeshReader meshReader;
+
+        public static DaggerfallUnity Instance => instance ?? (instance = GameObject.FindObjectOfType<DaggerfallUnity>());
+
+        public static SettingsManager Settings => settingsManager ?? (settingsManager = new SettingsManager());
+
+        public MaterialReader MaterialReader => materialReader ?? (materialReader = GetComponent<MaterialReader>());
+
+        public MeshReader MeshReader => meshReader ?? (meshReader = GetComponent<MeshReader>());
 
         public ITextProvider TextProvider
-        { get; set; }
+        {
+            get => textProvider;
+            set => textProvider = value;
+        }
 
-        public string Arena2Path
-        { get; set; }
+        public string Arena2Path;
+        public int ModelImporter_ModelID = 456;
+        public string BlockImporter_BlockName = "MAGEAA01.RMB";
 
         public bool IsReady
         {

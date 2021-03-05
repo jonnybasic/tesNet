@@ -14,57 +14,71 @@ namespace wpfDagger
 {
     public class RecordModelValueConverter : IValueConverter
     {
-        public DaggerfallUnity DaggerfallUnity
-        { get; set; }
+        static System.Windows.DependencyObject designerCheck = new System.Windows.DependencyObject();
 
-        public MeshReader MeshReader
+        public DaggerfallUnity DaggerfallUnity
         { get; set; }
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
+            if (System.ComponentModel.DesignerProperties.GetIsInDesignMode(designerCheck))
+            {
+                App.SetupUnityEngine();
+            }
+
             // check incoming value
             if (value is RecordModel record
-                && DaggerfallUnity != null
-                && MeshReader != null)
+                && DaggerfallUnity != null)
             {
                 // check target type
                 if (targetType == typeof(Model3D))
                 {
-                    // load this model
-                    if (record.ModelCache is null
-                        && MeshReader.GetModelData(record.Id, out record._modelData))
+                    //try
                     {
-                        record.CameraUpDirection = new Vector3D(0, 1, 0);
-                        // load model preview;
-                        record._mesh = MeshReader.GetMesh(
-                            DaggerfallUnity,
-                            record.Id,
-                            out record._cachedMaterials,
-                            out record._textureKeys,
-                            out record._hasAnimations);
-                        // get albedo textures
-                        record.Textures = new ObservableCollection<ImageSource>(
-                            record._cachedMaterials.Select<CachedMaterial, ImageSource>((cm) => cm.albedoMap));
-                        // get emissive textures
-                        foreach (ImageSource t in record._cachedMaterials.Where((cm) => cm.emissionMap != null).Select((cm) => cm.emissionMap))
+                        // load this model
+                        if (record.ModelCache is null
+                            && DaggerfallUnity.MeshReader.GetModelData(record.Id, out record._modelData))
                         {
-                            record.Textures.Add(t);
+                            record.CameraUpDirection = new Vector3D(0, 1, 0);
+                            // load model preview;
+                            record._mesh = DaggerfallUnity.MeshReader.GetMesh(
+                                DaggerfallUnity,
+                                record.Id,
+                                out record._cachedMaterials,
+                                out record._textureKeys,
+                                out record._hasAnimations);
+                            // get albedo textures
+                            record.Textures = new ObservableCollection<ImageSource>(
+                                record._cachedMaterials.Select<CachedMaterial, ImageSource>((cm) => cm.albedoMap));
+                            // get emissive textures
+                            foreach (ImageSource t in record._cachedMaterials.Where((cm) => cm.emissionMap != null).Select((cm) => cm.emissionMap))
+                            {
+                                record.Textures.Add(t);
+                            }
+                            // update model
+                            record.SetModelCache(
+                                record._mesh.GetMeshProxy(
+                                    record._cachedMaterials.Select((cm) => cm.material).ToArray()));
                         }
-                        // update model
-                        record.SetModelCache(
-                            record._mesh.GetMeshProxy(
-                                record._cachedMaterials.Select((cm) => cm.material).ToArray()));
+                        // move the camera
+                        record.CameraPosition = new Point3D(
+                            -record._modelData.DFMesh.Radius,
+                            record._modelData.DFMesh.Radius * 0.25f,
+                            0.0f);
+                        record.CameraLookDirection = new Vector3D(
+                            -record.CameraPosition.X,
+                            -record.CameraPosition.Y,
+                            0.0f);
+                        return record.ModelCache;
                     }
-                    // move the camera
-                    record.CameraPosition = new Point3D(
-                        -record._modelData.DFMesh.Radius,
-                        record._modelData.DFMesh.Radius * 0.25f,
-                        0.0f);
-                    record.CameraLookDirection = new Vector3D(
-                        -record.CameraPosition.X,
-                        -record.CameraPosition.Y,
-                        0.0f);
-                    return record.ModelCache;
+                    //catch (Exception e)
+                    //{
+                    //    // HACK: Designer Mode is Throwing tring to load the INI parser library
+                    //    //       Is there a way the designer mode can load assemblies
+                    //    System.Diagnostics.Debug.Print(e.Message);
+                    //    throw e;
+                    //    return null;
+                    //}
                 }
             }
             return value;
