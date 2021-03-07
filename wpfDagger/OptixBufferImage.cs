@@ -244,6 +244,12 @@ namespace wpfDagger
             NV_ClosestHitPhong,
             NV_ClosestHitPhongTextured,
 
+            //NVA_RayGenPathTraceCamera,
+            //NVA_MissSunSky,
+            //NVA_Exception,
+            NVA_AnyHitDiffuse,
+            NVA_ClosestHitDiffuse,
+
             BoundsUnitSphere,
             IntersectUnitSphere,
 
@@ -265,6 +271,8 @@ namespace wpfDagger
             NV_Normal,
             NV_PhongMetal,
             NV_PhongTextured,
+
+            NVA_Diffuse,
 
             DefaultChecker,
             //PhongTextured,
@@ -379,6 +387,7 @@ namespace wpfDagger
         private void BackgroundTimer_Tick(object sender, EventArgs e)
         {
             optixPrograms[(int)ProgramKey.NV_RayGenAccumCamera]["frame"].Set(launchCount);
+            //optixPrograms[(int)ProgramKey.NVA_RayGenPathTraceCamera]["frame"].Set(launchCount);
             context.Launch(
                 EntryPointIndex,
                 bufferDescription.Width,
@@ -672,6 +681,74 @@ namespace wpfDagger
             optixMaterials[(int)MaterialKey.NV_PhongTextured] = contextModel.CreateMaterial(nvPhongTexturedClosestHit, nvPhongAnyHit);
         }
 
+        private void LoadNVIDIAAdvancedSamples()
+        {
+            contextModel.StackSize = 600;
+            contextModel.MaxTraceDepth = 12;
+
+            // Note: high max depth for reflection and refraction through glass
+            context["max_depth"].Set(10);
+            context["cutoff_color"].Set(0.2f, 0.2f, 0.2f);
+            context["scene_epsilon"].Set(1e-3f);
+
+            // Set the NVIDIA camera as the active entry point
+            //EntryPointIndex = (uint)DaggerEntryPoint.NVIDIA_PathTraceCamera;
+
+            contextModel.LogMessages.Add("Loading nvidia advanced shading model resources");
+            string nvDir = Path.Combine(Directory.GetCurrentDirectory(), "cuda", "advanced");
+            string nvHelpersSource = contextModel.ReadFileToEnd(Path.Combine(nvDir, "helpers.h"));
+            string nvCommonStructsSource = contextModel.ReadFileToEnd(Path.Combine(nvDir, "commonStructs.h"));
+            string nvPRDSource = contextModel.ReadFileToEnd(Path.Combine(nvDir, "prd.h"));
+            string nvRandomSource = contextModel.ReadFileToEnd(Path.Combine(nvDir, "random.h"));
+            contextModel.LogMessages.Add("Compiling nvidia path trace camera ray generation program");
+            string nvPinholeCameraPTX = contextModel.CompilePtxFromString(
+                contextModel.ReadFileToEnd(Path.Combine(nvDir, "path_trace_camera.cu")),
+                "nva_path_trace_camera",
+                null,
+                new string[] { nvPRDSource, nvHelpersSource, nvRandomSource },
+                new string[] { "prd.h", "helpers.h", "random.h" });
+            OptixProgram nvPinholeCamera = contextModel.CreateFromPTXString(ref nvPinholeCameraPTX, "pinhole_camera");
+            cameraEye = new float3(-2.0f, 4.0f, 10.0f);
+            cameraLookAt = new float3(0.0f, 1.0f, 0.0f);
+            cameraUp = new float3(0.0f, 1.0f, 0.0f);
+            calculateCameraVariables(
+                cameraEye, cameraLookAt, cameraU,
+                cameraFOV, imageRect.Aspect(),
+                ref cameraU, ref cameraV, ref cameraW);
+            nvPinholeCamera["U"].SetFloat3(ref cameraU);
+            nvPinholeCamera["V"].SetFloat3(ref cameraV);
+            nvPinholeCamera["W"].SetFloat3(ref cameraW);
+            nvPinholeCamera["eye"].SetFloat3(ref cameraEye);
+            OptixProgram nvException = contextModel.CreateFromPTXString(ref nvPinholeCameraPTX, "exception");
+            nvException["bad_color"].Set(1.0f, 0.0f, 1.0f);
+            // TODO: Sunsky miss
+            //optixPrograms[(int)ProgramKey.NVA_RayGenPathTraceCamera] = nvPinholeCamera;
+            //optixPrograms[(int)ProgramKey.NVA_MissSunSky] = nvSunSkyMiss;
+            //optixPrograms[(int)ProgramKey.NVA_Exception] = nvException;
+            //context.SetRayGenerationProgram((uint)DaggerEntryPoint.NVIDIA_PathTraceCamera, nvPinholeCamera);
+            //context.SetExceptionProgram((uint)DaggerEntryPoint.NVIDIA_PathTraceCamera, nvException);
+            // set miss for each ray type
+            //context.SetRayMissProgram((uint)DaggerRayType.NVIDIA_Radiance, nvSunSkyMiss);
+            //context.SetRayMissProgram((uint)DaggerRayType.NVIDIA_Shadow, nvSunSkyMiss);
+
+            // diffuse shader material
+            contextModel.LogMessages.Add("Compiling nvidia advanced diffuse material program");
+            string nvDiffusePTX = contextModel.CompilePtxFromString(
+                contextModel.ReadFileToEnd(Path.Combine(nvDir, "diffuse.cu")),
+                "nva_diffuse",
+                null,
+                new string[] { nvPRDSource, nvHelpersSource, nvRandomSource, nvCommonStructsSource },
+                new string[] { "prd.h", "helpers.h", "random.h", "commonStructs.h" });
+            OptixProgram nvDiffuseAnyHit = contextModel.CreateFromPTXString(ref nvDiffusePTX, "any_hit_shadow");
+            OptixProgram nvDiffuseClosestHit = contextModel.CreateFromPTXString(ref nvDiffusePTX, "closest_hit_radiance");
+            optixPrograms[(int)ProgramKey.NVA_AnyHitDiffuse] = nvDiffuseAnyHit;
+            optixPrograms[(int)ProgramKey.NVA_ClosestHitDiffuse] = nvDiffuseClosestHit;
+            optixMaterials[(int)MaterialKey.NVA_Diffuse] = contextModel.CreateMaterial(nvDiffuseClosestHit, nvDiffuseAnyHit);
+
+            /*
+             */
+        }
+
         private void CreateLights()
         {
             BasicLight[] lights = {
@@ -713,16 +790,16 @@ namespace wpfDagger
             //topObjectGroup.AddChild(unitSphereInstance);
 
             contextModel.LogMessages.Add("Compiling phong material program");
-            string nvDir = Path.Combine(Directory.GetCurrentDirectory(), "cuda", "nvidia");
-            string nvHelpersSource = contextModel.ReadFileToEnd(Path.Combine(nvDir, "helpers.h"));
-            string nvCommonSource = contextModel.ReadFileToEnd(Path.Combine(nvDir, "common.h"));
-            string nvPhongSource = contextModel.ReadFileToEnd(Path.Combine(nvDir, "phong.h"));
+            //string nvDir = Path.Combine(Directory.GetCurrentDirectory(), "cuda", "nvidia");
+            string nvHelpersSource = contextModel.ReadCUFileToEnd("helpers.h", "cuda", "nvidia");
+            string nvCommonSource = contextModel.ReadCUFileToEnd("common.h", "cuda", "nvidia");
+            string nvPhongSource = contextModel.ReadCUFileToEnd("dagger_phong.h", "cuda");
             string phongPTX = contextModel.CompilePtxFromString(
-                contextModel.ReadFileToEnd(Path.Combine(Directory.GetCurrentDirectory(), "cuda", "dagger_phong.cu")),
+                contextModel.ReadCUFileToEnd("dagger_phong.cu", "cuda"),
                 "dagger_phong",
                 null,
                 new string[] { nvCommonSource, nvHelpersSource, nvPhongSource },
-                new string[] { "common.h", "helpers.h", "phong.h" });
+                new string[] { "common.h", "helpers.h", "dagger_phong.h" });
             optixPrograms[(int)ProgramKey.AnyHitPhong] = contextModel.CreateFromPTXString(ref phongPTX, "any_hit_shadow");
             optixPrograms[(int)ProgramKey.ClosestHitPhong] = contextModel.CreateFromPTXString(ref phongPTX, "closest_hit_radiance");
             optixPrograms[(int)ProgramKey.ClosestHitPhongTextured] = contextModel.CreateFromPTXString(ref phongPTX, "closest_hit_radiance_textured");
@@ -935,6 +1012,7 @@ namespace wpfDagger
 
         private void SetRecordGeometry(ref RecordModel record)
         {
+            var emissiveKey = UnityEngine.Shader.PropertyToID("_EmissionColor");
 #if true
             if (null != contextModel
                 && meshReader.GetModelData(record.Id, out ModelData model))
@@ -997,6 +1075,7 @@ namespace wpfDagger
                     for (int s = 0; s < model.SubMeshes.Length; ++s)
                     {
                         var subMesh = model.SubMeshes[s];
+                        var cached = record._cachedMaterials[s];
                         int materialKey = MaterialReader.MakeTextureKey(
                             (short)subMesh.TextureArchive,
                             (byte)subMesh.TextureRecord,
@@ -1007,63 +1086,109 @@ namespace wpfDagger
                             trianglesInstance.Materials[s] = cachedMaterials[materialKey];
                             continue;
                         }
-                        else
+                        else if (cached.albedoMap != null
+                            && cached.albedoMap.width > 0
+                            && cached.albedoMap.height > 0)
                         {
-                            //DaggerfallConnect.Utility.DFSize sz;
-                            var textureResults = daggerfallUnity.MaterialReader.TextureReader.GetTexture2D(
-                                TextureReader.CreateTextureSettings(
-                                    subMesh.TextureArchive,
-                                    subMesh.TextureRecord));
-                            var albedoTexture = textureResults.albedoMap;
+                            var albedoTexture = cached.albedoMap;
+                            // new textured material
+                            Material daggerMaterial = contextModel.CreateMaterial(
+                                optixPrograms[(int)ProgramKey.ClosestHitPhongTextured],
+                                optixPrograms[(int)ProgramKey.AnyHitPhong]);
 
-                            if (albedoTexture.width > 0
-                                && albedoTexture.height > 0)
-                            {
-                                // new textured material
-                                Material textureMaterial = contextModel.CreateMaterial(
-                                    optixPrograms[(int)ProgramKey.ClosestHitPhongTextured],
-                                    optixPrograms[(int)ProgramKey.AnyHitPhong]);
-
-                                // buffer for texture data
-                                OptixBuffer textureBuffer = contextModel.CreateBuffer(
-                                    new BufferDesc
-                                    {
-                                        Format = Format.UByte4,
-                                        Height = (uint)albedoTexture.height,
-                                        Width = (uint)albedoTexture.width,
-                                        Type = BufferType.Input
-                                    });
-                                // convert pixel data to RGBA
-                                byte[] pixels = new byte[albedoTexture.bytesBGRA.Length];
-                                for (int p = 0; p < pixels.Length; p += 4)
+                            // buffer for texture data
+                            OptixBuffer albedoBuffer = contextModel.CreateBuffer(
+                                new BufferDesc
                                 {
-                                    pixels[p + 0] = albedoTexture.bytesBGRA[p + 2];
-                                    pixels[p + 1] = albedoTexture.bytesBGRA[p + 1];
-                                    pixels[p + 2] = albedoTexture.bytesBGRA[p + 0];
-                                    pixels[p + 3] = albedoTexture.bytesBGRA[p + 3];
-                                }
-                                textureBuffer.SetData(pixels);
-                                // texture sampler
-                                TextureSamplerDesc desc = TextureSamplerDesc.Default;
-                                desc.Filter.Mag = FilterMode.Nearest;
-                                desc.Filter.Min = FilterMode.Nearest;
-                                desc.Wrap.WrapU = WrapMode.Repeat;
-                                desc.Wrap.WrapV = WrapMode.Repeat;
-                                TextureSampler textureSampler = contextModel.CreateTextureSampler(desc);
-                                textureSampler.SetBuffer(textureBuffer);
-                                // assign the sampler
-                                textureMaterial["Ka"].Set(0.0f, 0.0f, 0.0f);
-                                textureMaterial["Kd"].Set(1.0f, 1.0f, 1.0f);
-                                textureMaterial["Ks"].Set(0.0f, 0.0f, 0.0f);
-                                textureMaterial["phong_exp"].Set(0.0f);
-                                textureMaterial["Kr"].Set(0.01f, 0.01f, 0.01f);
-                                textureMaterial["Kd_map"].Set(textureSampler);
-                                // use the new material
-                                trianglesInstance.Materials[s] = textureMaterial;
-                                // cache material
-                                cachedMaterials[materialKey] = textureMaterial;
-                                continue;
+                                    Format = Format.UByte4,
+                                    Height = (uint)albedoTexture.height,
+                                    Width = (uint)albedoTexture.width,
+                                    Type = BufferType.Input
+                                });
+                            // convert pixel data to RGBA
+                            byte[] albedoPixels = new byte[albedoTexture.bytesBGRA.Length];
+                            for (int p = 0; p < albedoPixels.Length; p += 4)
+                            {
+                                albedoPixels[p + 0] = albedoTexture.bytesBGRA[p + 2];
+                                albedoPixels[p + 1] = albedoTexture.bytesBGRA[p + 1];
+                                albedoPixels[p + 2] = albedoTexture.bytesBGRA[p + 0];
+                                albedoPixels[p + 3] = albedoTexture.bytesBGRA[p + 3];
                             }
+                            albedoBuffer.SetData(albedoPixels);
+                            // texture sampler
+                            TextureSamplerDesc desc = TextureSamplerDesc.Default;
+                            desc.Filter.Mag = FilterMode.Nearest;
+                            desc.Filter.Min = FilterMode.Nearest;
+                            desc.Wrap.WrapU = WrapMode.Repeat;
+                            desc.Wrap.WrapV = WrapMode.Repeat;
+                            TextureSampler albedoSampler = contextModel.CreateTextureSampler(desc);
+                            albedoSampler.SetBuffer(albedoBuffer);
+                            // buffer for emissive data
+                            OptixBuffer emissiveBuffer = contextModel.CreateBuffer(
+                                new BufferDesc
+                                {
+                                    Format = Format.UByte4,
+                                    Width = 2,
+                                    Height = 2,
+                                    Type = BufferType.Input
+                                });
+                            // check for emissive
+                            if (cached.emissionMap != null
+                                && cached.emissionMap.width > 0
+                                && cached.emissionMap.height > 0)
+                            {
+                                //System.Windows.Media.Color color = cached.material.GetColor(emissiveKey);
+                                var emissiveTexture = cached.emissionMap;
+                                // convert pixel data to RGBA
+                                byte[] emissivePixels = new byte[emissiveTexture.bytesBGRA.Length];
+                                for (int p = 0; p < emissivePixels.Length; p += 4)
+                                {
+                                    emissivePixels[p + 0] = emissiveTexture.bytesBGRA[p + 2]; //color.R; 
+                                    emissivePixels[p + 1] = emissiveTexture.bytesBGRA[p + 1]; //color.G; 
+                                    emissivePixels[p + 2] = emissiveTexture.bytesBGRA[p + 0]; //color.B; 
+                                    emissivePixels[p + 3] = emissiveTexture.bytesBGRA[p + 3];
+                                }
+                                // resize buffer
+                                emissiveBuffer.Resize((ulong)emissiveTexture.width, (ulong)emissiveTexture.height, 0);
+                                emissiveBuffer.SetData(emissivePixels);
+                            }
+                            else
+                            {   // empty RGBA (2x2)
+                                byte[] emissivePixels = Enumerable.Repeat<byte>(0, 16).ToArray();
+                                emissiveBuffer.SetData(emissivePixels);
+                            }
+                            // emissive sampler
+                            desc.Filter.Mag = FilterMode.Nearest;
+                            desc.Filter.Min = FilterMode.Nearest;
+                            desc.Wrap.WrapU = WrapMode.Repeat;
+                            desc.Wrap.WrapV = WrapMode.Repeat;
+                            TextureSampler emissiveSampler = contextModel.CreateTextureSampler(desc);
+                            emissiveSampler.SetBuffer(emissiveBuffer);
+                            // assign the sampler
+                            daggerMaterial["Kd"].Set(1.0f, 1.0f, 1.0f);
+                            if (cached.isWindow)
+                            {
+                                var windowColor = cached.material.GetColor(emissiveKey);
+                                daggerMaterial["Kr"].Set(windowColor.r, windowColor.g, windowColor.b);
+                                //daggerMaterial["Kr"].Set(0.5f, 0.5f, 0.5f);
+                                daggerMaterial["Ka"].Set(0.0f, 0.0f, 0.0f);
+                                daggerMaterial["Ks"].Set(0.0f, 0.0f, 0.0f);
+                                daggerMaterial["phong_exp"].Set(0.0f);
+                            }
+                            else
+                            {
+                                daggerMaterial["Kr"].Set(0.0f, 0.0f, 0.0f);
+                                daggerMaterial["Ka"].Set(0.0f, 0.0f, 0.0f);
+                                daggerMaterial["Ks"].Set(0.0f, 0.0f, 0.0f);
+                                daggerMaterial["phong_exp"].Set(0.0f);
+                            }
+                            daggerMaterial["Kd_map"].Set(albedoSampler);
+                            daggerMaterial["Em_map"].Set(emissiveSampler);
+                            // use the new material
+                            trianglesInstance.Materials[s] = daggerMaterial;
+                            // cache material
+                            cachedMaterials[materialKey] = daggerMaterial;
+                            continue;
                         }
 
                         // use default material, do not cache
@@ -1242,7 +1367,7 @@ namespace wpfDagger
                         Type = BufferType.Input,
                         Width = primitives
                     });
-            
+
             // Copy the mesh geometry into the device Buffers.
             vertex_buffer.SetData(mesh.vertices);
             normal_buffer.SetData(mesh.normals);

@@ -15,6 +15,7 @@ namespace wpfDagger
     {
         SolidColorTest = 0,
         NVIDIA_PinholeCamera,
+        //NVIDIA_PathTraceCamera,
 
         /// <summary>
         /// Must be last
@@ -296,6 +297,11 @@ namespace wpfDagger
             };
             nodes.Add(result);
             return result;
+        }
+
+        internal string ReadCUFileToEnd(String filename, params string[] paths)
+        {
+            return ReadFileToEnd(Path.Combine(Directory.GetCurrentDirectory(), Path.Combine(paths), filename));
         }
 
         internal string ReadFileToEnd(String filepath)

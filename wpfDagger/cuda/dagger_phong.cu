@@ -36,7 +36,7 @@
 
 #include <optix.h>
 #include <optixu/optixu_math_namespace.h>
-#include "phong.h"
+#include "dagger_phong.h"
 
 using namespace optix;
 
@@ -47,7 +47,9 @@ rtDeclareVariable(float3, Kr, , );
 rtDeclareVariable(float, phong_exp, , );
 
 rtDeclareVariable(float3, geometric_normal, attribute geometric_normal, );
-rtDeclareVariable(float3, shading_normal, attribute shading_normal, );
+rtDeclareVariable(float3, shading_normal,   attribute shading_normal, );
+rtDeclareVariable(float3, front_hit_point,  attribute front_hit_point, );
+rtDeclareVariable(float3, texcoord,         attribute texcoord, );
 
 
 RT_PROGRAM void any_hit_shadow()
@@ -59,21 +61,25 @@ RT_PROGRAM void closest_hit_radiance()
 {
     float3 world_shading_normal = normalize(rtTransformNormal(RT_OBJECT_TO_WORLD, shading_normal));
     float3 world_geometric_normal = normalize(rtTransformNormal(RT_OBJECT_TO_WORLD, geometric_normal));
+    float3 world_hit_point = rtTransformPoint(RT_OBJECT_TO_WORLD, front_hit_point);
 
     float3 ffnormal = faceforward(world_shading_normal, -ray.direction, world_geometric_normal);
-    phongShade(Kd, Ka, Ks, Kr, phong_exp, ffnormal);
+    phongShade(world_hit_point, Kd, Ka, Ks, Kr, phong_exp, ffnormal);
 }
 
 rtTextureSampler<float4, 2> Kd_map;
-rtDeclareVariable(float3, texcoord, attribute texcoord, );
+rtTextureSampler<float4, 2> Em_map;
 
 RT_PROGRAM void closest_hit_radiance_textured()
 {
     float3 world_shading_normal = normalize(rtTransformNormal(RT_OBJECT_TO_WORLD, shading_normal));
     float3 world_geometric_normal = normalize(rtTransformNormal(RT_OBJECT_TO_WORLD, geometric_normal));
+    float3 world_hit_point = rtTransformPoint(RT_OBJECT_TO_WORLD, front_hit_point);
 
     float3 ffnormal = faceforward(world_shading_normal, -ray.direction, world_geometric_normal);
-
-    const float3 Kd_val = make_float3(tex2D(Kd_map, texcoord.x, texcoord.y));
-    phongShade(Kd_val, Ka, Ks, Kr, phong_exp, ffnormal);
+    
+    const float4 albedo = tex2D(Kd_map, texcoord.x, texcoord.y);
+    const float4 emissive = tex2D(Em_map, texcoord.x, texcoord.y);
+    const float3 Kd_val = mix(make_float3(albedo), make_float3(emissive), emissive.w);
+    phongShade(world_hit_point, Kd_val, Ka, Ks, Kr * emissive.w, phong_exp, ffnormal);
 }

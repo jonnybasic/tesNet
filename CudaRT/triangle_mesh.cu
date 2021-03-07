@@ -42,6 +42,7 @@ rtDeclareVariable(float3, shading_normal, attribute shading_normal, );
 rtDeclareVariable(float3, geometric_normal, attribute geometric_normal, );
 rtDeclareVariable(float3, texcoord, attribute texcoord, );
 rtDeclareVariable(float2, barycentrics, attribute barycentrics, );
+rtDeclareVariable(float3, front_hit_point, attribute front_hit_point, );
 
 rtBuffer<float3> vertex_buffer;
 rtBuffer<float3> normal_buffer;
@@ -61,6 +62,9 @@ RT_PROGRAM void triangle_attributes()
 
     barycentrics = rtGetTriangleBarycentrics();
     texcoord = make_float3(barycentrics.x, barycentrics.y, 0.0f);
+
+    // P=A+u(B-A)+v(C-A)
+    front_hit_point = v0 + barycentrics.x * (v1 - v0) + barycentrics.y * (v2 - v0);
 
     if (normal_buffer.size() == 0)
     {
